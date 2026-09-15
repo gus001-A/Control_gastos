@@ -53,8 +53,28 @@ class Cuenta extends Model
         return $this->hasMany(Transferencia::class, 'cuenta_destino_id');
     }
 
+    /**
+     * Trae el saldo ya calculado en una sola consulta (evita N+1 al listar varias cuentas).
+     * Úsalo con Cuenta::conSaldo()->get() en vez de Cuenta::all()/get().
+     */
+    public function scopeConSaldo($query)
+    {
+        return $query->select('cuentas.*')->selectSub(
+            'cuentas.saldo_inicial'
+            .' + COALESCE((SELECT SUM(monto) FROM movimientos WHERE movimientos.cuenta_id = cuentas.id AND movimientos.tipo = \'ingreso\'), 0)'
+            .' - COALESCE((SELECT SUM(monto) FROM movimientos WHERE movimientos.cuenta_id = cuentas.id AND movimientos.tipo = \'gasto\'), 0)'
+            .' - COALESCE((SELECT SUM(monto) FROM transferencias WHERE transferencias.cuenta_origen_id = cuentas.id), 0)'
+            .' + COALESCE((SELECT SUM(monto) FROM transferencias WHERE transferencias.cuenta_destino_id = cuentas.id), 0)',
+            'saldo_calculado'
+        );
+    }
+
     public function getSaldoAttribute(): float
     {
+        if (array_key_exists('saldo_calculado', $this->attributes)) {
+            return round((float) $this->attributes['saldo_calculado'], 2);
+        }
+
         $saldo = (float) $this->saldo_inicial;
         $saldo += (float) $this->movimientos()->where('tipo', 'ingreso')->sum('monto');
         $saldo -= (float) $this->movimientos()->where('tipo', 'gasto')->sum('monto');
@@ -69,5 +89,19 @@ class Cuenta extends Model
         return $this->movimientos()->exists()
             || $this->transferenciasSalida()->exists()
             || $this->transferenciasEntrada()->exists();
+    }
+
+    /**
+     * Saldo disponible ignorando el efecto de un movimiento propio (para validar al editarlo).
+     */
+    public function saldoSinMovimiento(?Movimiento $movimiento): float
+    {
+        $saldo = $this->saldo;
+
+        if ($movimiento && (int) $movimiento->cuenta_id === (int) $this->id) {
+            $saldo += $movimiento->tipo === 'ingreso' ? -(float) $movimiento->monto : (float) $movimiento->monto;
+        }
+
+        return round($saldo, 2);
     }
 }

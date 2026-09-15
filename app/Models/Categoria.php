@@ -18,7 +18,6 @@ class Categoria extends Model
         ['nombre' => 'Servicios (luz, agua, internet)', 'tipo' => 'gasto', 'color' => '#eab308', 'sistema' => false],
         ['nombre' => 'Salud', 'tipo' => 'gasto', 'color' => '#ef4444', 'sistema' => false],
         ['nombre' => 'Entretenimiento', 'tipo' => 'gasto', 'color' => '#ec4899', 'sistema' => false],
-        ['nombre' => 'Educación', 'tipo' => 'gasto', 'color' => '#06b6d4', 'sistema' => false],
         ['nombre' => 'Otros gastos', 'tipo' => 'gasto', 'color' => '#64748b', 'sistema' => false],
         ['nombre' => 'Pago de deudas', 'tipo' => 'gasto', 'color' => '#dc2626', 'sistema' => true],
         ['nombre' => 'Sueldo / Nómina', 'tipo' => 'ingreso', 'color' => '#16a34a', 'sistema' => false],

@@ -3,16 +3,17 @@ import { computed, ref, watch } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
-import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import SelectInput from '@/Components/SelectInput.vue';
+import CurrencyInput from '@/Components/CurrencyInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
+import { confirmar, advertencia } from '@/lib/alertas';
 import { Plus, ArrowLeftRight, Pencil, Trash2, Filter, X, ArrowUpCircle, ArrowDownCircle, Scale } from '@lucide/vue';
 
 const ORIGENES_BLOQUEADOS = ['abono_deuda', 'pago_proyecto'];
@@ -74,7 +75,7 @@ function abrirCrear() {
 
 function abrirEditar(m) {
     if (ORIGENES_BLOQUEADOS.includes(m.origen)) {
-        alert('Este movimiento se generó automáticamente desde una deuda o proyecto. Edítalo desde esa sección.');
+        advertencia('Este movimiento se generó automáticamente desde una deuda o proyecto. Edítalo desde esa sección.');
         return;
     }
     editando.value = m;
@@ -96,9 +97,12 @@ function guardar() {
     }
 }
 
-const confirmandoMov = ref(null);
-function eliminarMovimiento() {
-    router.delete(route('movimientos.destroy', confirmandoMov.value.id), { onFinish: () => (confirmandoMov.value = null) });
+function eliminarMovimiento(m) {
+    confirmar({
+        title: 'Eliminar movimiento',
+        content: '¿Eliminar este movimiento? No se puede deshacer.',
+        onOk: () => router.delete(route('movimientos.destroy', m.id)),
+    });
 }
 
 // --- modal transferencia ---
@@ -125,9 +129,12 @@ function guardarTransferencia() {
     transferForm.post(route('transferencias.store'), { onSuccess: () => (showTransferModal.value = false) });
 }
 
-const confirmandoTrans = ref(null);
-function eliminarTransferencia() {
-    router.delete(route('transferencias.destroy', confirmandoTrans.value.id), { onFinish: () => (confirmandoTrans.value = null) });
+function eliminarTransferencia(t) {
+    confirmar({
+        title: 'Eliminar transferencia',
+        content: '¿Eliminar esta transferencia? No se puede deshacer.',
+        onOk: () => router.delete(route('transferencias.destroy', t.id)),
+    });
 }
 </script>
 
@@ -265,7 +272,7 @@ function eliminarTransferencia() {
                                         v-if="!ORIGENES_BLOQUEADOS.includes(m.origen)"
                                         class="text-ink-400 transition hover:text-rose-600"
                                         title="Eliminar"
-                                        @click="confirmandoMov = m"
+                                        @click="eliminarMovimiento(m)"
                                     >
                                         <Trash2 :size="15" />
                                     </button>
@@ -301,7 +308,7 @@ function eliminarTransferencia() {
                             <td class="px-5 py-3 text-ink-500">{{ t.descripcion || '-' }}</td>
                             <td class="px-5 py-3 text-right font-semibold text-ink-900">{{ formatCurrency(t.monto) }}</td>
                             <td class="px-5 py-3 text-right">
-                                <button class="text-ink-400 transition hover:text-rose-600" title="Eliminar" @click="confirmandoTrans = t"><Trash2 :size="15" /></button>
+                                <button class="text-ink-400 transition hover:text-rose-600" title="Eliminar" @click="eliminarTransferencia(t)"><Trash2 :size="15" /></button>
                             </td>
                         </tr>
                     </tbody>
@@ -343,7 +350,7 @@ function eliminarTransferencia() {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <InputLabel value="Monto" />
-                            <TextInput v-model="form.monto" type="number" step="0.01" class="mt-1" />
+                            <CurrencyInput v-model="form.monto" class="mt-1" />
                             <InputError :message="form.errors.monto" />
                         </div>
                         <div>
@@ -388,7 +395,7 @@ function eliminarTransferencia() {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <InputLabel value="Monto" />
-                            <TextInput v-model="transferForm.monto" type="number" step="0.01" class="mt-1" />
+                            <CurrencyInput v-model="transferForm.monto" class="mt-1" />
                             <InputError :message="transferForm.errors.monto" />
                         </div>
                         <div>
@@ -408,20 +415,5 @@ function eliminarTransferencia() {
                 </div>
             </form>
         </Modal>
-
-        <ConfirmDialog
-            :show="!!confirmandoMov"
-            title="Eliminar movimiento"
-            message="¿Eliminar este movimiento? No se puede deshacer."
-            @confirm="eliminarMovimiento"
-            @cancel="confirmandoMov = null"
-        />
-        <ConfirmDialog
-            :show="!!confirmandoTrans"
-            title="Eliminar transferencia"
-            message="¿Eliminar esta transferencia? No se puede deshacer."
-            @confirm="eliminarTransferencia"
-            @cancel="confirmandoTrans = null"
-        />
     </AuthenticatedLayout>
 </template>

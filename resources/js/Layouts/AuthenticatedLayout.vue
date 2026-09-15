@@ -1,10 +1,10 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import FlashMessages from '@/Components/FlashMessages.vue';
+import { exito, error as mostrarError } from '@/lib/alertas';
 import {
     LayoutDashboard, Wallet, Receipt, TrendingDown, Briefcase, PieChart,
-    Repeat, LogOut, Menu, X, Wallet as LogoIcon,
+    Repeat, LogOut, Menu, X, Wallet as LogoIcon, PanelLeftClose, PanelLeftOpen,
 } from '@lucide/vue';
 
 defineProps({
@@ -14,6 +14,32 @@ defineProps({
 
 const page = usePage();
 const menuAbierto = ref(false);
+const colapsado = ref(false);
+
+onMounted(() => {
+    try {
+        colapsado.value = localStorage.getItem('cg_sidebar_colapsado') === '1';
+    } catch {
+        // localStorage no disponible (modo privado, etc.) — se queda expandido.
+    }
+});
+
+function alternarColapso() {
+    colapsado.value = !colapsado.value;
+    try {
+        localStorage.setItem('cg_sidebar_colapsado', colapsado.value ? '1' : '0');
+    } catch {
+        //
+    }
+}
+
+watch(
+    () => [page.props.flash?.success, page.props.flash?.error],
+    ([success, err]) => {
+        if (success) exito(success);
+        if (err) mostrarError(err);
+    },
+);
 
 const NAV = [
     { key: 'dashboard', label: 'Inicio', icon: LayoutDashboard, route: 'dashboard' },
@@ -40,24 +66,32 @@ const iniciales = computed(() => {
 <template>
     <div class="min-h-screen bg-ink-50">
         <!-- Sidebar desktop -->
-        <aside class="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-ink-950 lg:flex">
-            <div class="px-6 pb-3 pt-7">
-                <div class="flex items-center gap-2.5">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 shadow-glow">
+        <aside
+            class="fixed inset-y-0 left-0 z-30 hidden flex-col bg-ink-950 transition-all duration-200 lg:flex"
+            :class="colapsado ? 'w-20' : 'w-64'"
+        >
+            <div class="flex items-center px-4 pb-3 pt-7" :class="colapsado ? 'justify-center' : 'justify-between'">
+                <div class="flex items-center gap-2.5 overflow-hidden">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 shadow-glow">
                         <LogoIcon :size="18" class="text-white" stroke-width="2.25" />
                     </div>
-                    <p class="text-[15px] font-extrabold tracking-tight text-white">Control de Gastos</p>
+                    <p v-if="!colapsado" class="whitespace-nowrap text-[15px] font-extrabold tracking-tight text-white">Control de Gastos</p>
                 </div>
             </div>
+
             <nav class="mt-4 flex-1 space-y-1 px-3">
                 <Link
                     v-for="item in NAV"
                     :key="item.key"
                     :href="route(item.route)"
+                    :title="colapsado ? item.label : ''"
                     class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150"
-                    :class="esActivo(item.route)
-                        ? 'bg-gradient-to-r from-brand-600/90 to-brand-700/60 text-white shadow-glow'
-                        : 'text-ink-300 hover:bg-white/5 hover:text-white'"
+                    :class="[
+                        colapsado ? 'justify-center' : '',
+                        esActivo(item.route)
+                            ? 'bg-gradient-to-r from-brand-600/90 to-brand-700/60 text-white shadow-glow'
+                            : 'text-ink-300 hover:bg-white/5 hover:text-white',
+                    ]"
                 >
                     <component
                         :is="item.icon"
@@ -66,15 +100,29 @@ const iniciales = computed(() => {
                         class="shrink-0 transition-transform duration-150 group-hover:scale-110"
                         :class="esActivo(item.route) ? 'text-white' : 'text-ink-400 group-hover:text-brand-300'"
                     />
-                    {{ item.label }}
+                    <span v-if="!colapsado" class="whitespace-nowrap">{{ item.label }}</span>
                 </Link>
             </nav>
+
             <div class="border-t border-white/10 p-3">
-                <Link :href="route('profile.edit')" class="flex items-center gap-2.5 rounded-xl px-2 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-white">
+                <button
+                    class="mb-1 flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-xs font-semibold text-ink-400 transition hover:bg-white/5 hover:text-white"
+                    :class="colapsado ? 'justify-center' : ''"
+                    @click="alternarColapso"
+                >
+                    <component :is="colapsado ? PanelLeftOpen : PanelLeftClose" :size="16" />
+                    <span v-if="!colapsado">Contraer menú</span>
+                </button>
+
+                <Link
+                    :href="route('profile.edit')"
+                    class="flex items-center gap-2.5 rounded-xl px-2 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-white"
+                    :class="colapsado ? 'justify-center' : ''"
+                >
                     <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-800 text-xs font-bold text-white">
                         {{ iniciales }}
                     </div>
-                    <div class="min-w-0">
+                    <div v-if="!colapsado" class="min-w-0">
                         <div class="truncate font-semibold text-white">{{ page.props.auth.user.name }}</div>
                         <div class="truncate text-xs text-ink-400">{{ page.props.auth.user.email }}</div>
                     </div>
@@ -83,10 +131,12 @@ const iniciales = computed(() => {
                     :href="route('logout')"
                     method="post"
                     as="button"
+                    :title="colapsado ? 'Cerrar sesión' : ''"
                     class="mt-1 flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-xs font-semibold text-ink-400 transition hover:bg-white/5 hover:text-white"
+                    :class="colapsado ? 'justify-center' : ''"
                 >
                     <LogOut :size="15" />
-                    Cerrar sesión
+                    <span v-if="!colapsado">Cerrar sesión</span>
                 </Link>
             </div>
         </aside>
@@ -151,7 +201,7 @@ const iniciales = computed(() => {
             </aside>
         </Transition>
 
-        <div class="lg:pl-64">
+        <div class="transition-all duration-200" :class="colapsado ? 'lg:pl-20' : 'lg:pl-64'">
             <header class="sticky top-0 z-20 flex items-center gap-3 border-b border-ink-100 bg-white/80 px-4 py-3 backdrop-blur lg:hidden">
                 <button class="rounded-lg p-1.5 text-ink-800 hover:bg-ink-50" @click="menuAbierto = true">
                     <Menu :size="22" />
@@ -174,7 +224,5 @@ const iniciales = computed(() => {
                 </div>
             </main>
         </div>
-
-        <FlashMessages />
     </div>
 </template>

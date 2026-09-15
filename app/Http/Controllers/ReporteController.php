@@ -51,7 +51,7 @@ class ReporteController extends Controller
 
         $evolucionSaldo = $this->evolucionSaldo($userId, 6);
 
-        $proyectos = Auth::user()->proyectos()->get()->map(fn ($p) => [
+        $proyectos = Auth::user()->proyectos()->withSum('pagos', 'monto')->get()->map(fn ($p) => [
             'nombre' => $p->nombre,
             'cobrado' => (float) $p->monto_cobrado,
             'pagado' => $p->pagado,
@@ -59,7 +59,7 @@ class ReporteController extends Controller
             'estado' => $p->estado,
         ]);
 
-        $deudas = Auth::user()->deudas()->get();
+        $deudas = Auth::user()->deudas()->withSum('abonos', 'monto')->get();
         $resumenDeudas = [
             'total' => round($deudas->sum(fn ($d) => (float) $d->monto_total), 2),
             'pagado' => round($deudas->sum('pagado'), 2),

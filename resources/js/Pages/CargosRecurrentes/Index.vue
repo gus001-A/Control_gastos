@@ -3,16 +3,17 @@ import { computed, ref } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
-import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import Badge from '@/Components/Badge.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import CurrencyInput from '@/Components/CurrencyInput.vue';
 import SelectInput from '@/Components/SelectInput.vue';
 import Textarea from '@/Components/Textarea.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
+import { confirmar, exito, error as mostrarError } from '@/lib/alertas';
 import { Plus, Pencil, Trash2, CheckCircle2, Repeat, Home, Dumbbell, Tv, Wifi, ShoppingBag } from '@lucide/vue';
 
 const props = defineProps({
@@ -99,13 +100,24 @@ function guardar() {
     }
 }
 
-const confirmando = ref(null);
-function eliminar() {
-    router.delete(route('recurrentes.destroy', confirmando.value.id), { onFinish: () => (confirmando.value = null) });
+function eliminar(cargo) {
+    confirmar({
+        title: 'Eliminar cargo recurrente',
+        content: `¿Eliminar "${cargo.nombre}"? No se borrarán los movimientos ya registrados.`,
+        onOk: () => router.delete(route('recurrentes.destroy', cargo.id)),
+    });
 }
 
 function pagarAhora(cargo) {
-    router.post(route('recurrentes.pagar', cargo.id), { fecha: hoyIso() }, { preserveScroll: true });
+    router.post(
+        route('recurrentes.pagar', cargo.id),
+        { fecha: hoyIso() },
+        {
+            preserveScroll: true,
+            onSuccess: () => exito(`Pago de "${cargo.nombre}" registrado.`),
+            onError: (errors) => mostrarError(Object.values(errors)[0] || 'No se pudo registrar el pago.'),
+        },
+    );
 }
 </script>
 
@@ -166,7 +178,7 @@ function pagarAhora(cargo) {
                     <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(cargo)">
                         <Pencil :size="13" />
                     </button>
-                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="confirmando = cargo">
+                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="eliminar(cargo)">
                         <Trash2 :size="13" />
                     </button>
                 </div>
@@ -204,7 +216,7 @@ function pagarAhora(cargo) {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <InputLabel value="Monto" />
-                            <TextInput v-model="form.monto" type="number" step="0.01" class="mt-1" />
+                            <CurrencyInput v-model="form.monto" class="mt-1" />
                             <InputError :message="form.errors.monto" />
                         </div>
                         <div>
@@ -248,13 +260,5 @@ function pagarAhora(cargo) {
                 </div>
             </form>
         </Modal>
-
-        <ConfirmDialog
-            :show="!!confirmando"
-            title="Eliminar cargo recurrente"
-            :message="confirmando ? `¿Eliminar '${confirmando.nombre}'? No se borrarán los movimientos ya registrados.` : ''"
-            @confirm="eliminar"
-            @cancel="confirmando = null"
-        />
     </AuthenticatedLayout>
 </template>

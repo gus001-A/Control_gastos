@@ -20,7 +20,7 @@ class DashboardController extends Controller
         $hoy = now();
         $inicioMes = $hoy->copy()->startOfMonth();
 
-        $cuentas = Auth::user()->cuentas()->where('activa', true)->orderBy('nombre')->get();
+        $cuentas = Auth::user()->cuentas()->conSaldo()->where('activa', true)->orderBy('nombre')->get();
         $saldoTotal = round($cuentas->sum('saldo'), 2);
 
         $movMes = Movimiento::where('user_id', $userId)
@@ -29,8 +29,8 @@ class DashboardController extends Controller
             ->selectRaw("COALESCE(SUM(CASE WHEN tipo = 'gasto' THEN monto ELSE 0 END), 0) as gastos")
             ->first();
 
-        $deudasActivas = Deuda::where('user_id', $userId)->where('estado', 'activa')->get();
-        $proyectosActivos = Proyecto::where('user_id', $userId)->where('estado', 'activo')->get();
+        $deudasActivas = Deuda::where('user_id', $userId)->where('estado', 'activa')->withSum('abonos', 'monto')->get();
+        $proyectosActivos = Proyecto::where('user_id', $userId)->where('estado', 'activo')->withSum('pagos', 'monto')->get();
 
         $gastosPorCategoria = Movimiento::where('movimientos.user_id', $userId)
             ->where('movimientos.tipo', 'gasto')

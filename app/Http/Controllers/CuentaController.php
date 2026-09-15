@@ -13,7 +13,7 @@ class CuentaController extends Controller
 {
     public function index(): Response
     {
-        $cuentas = Auth::user()->cuentas()->orderByDesc('activa')->orderBy('nombre')->get();
+        $cuentas = Auth::user()->cuentas()->conSaldo()->orderByDesc('activa')->orderBy('nombre')->get();
 
         return Inertia::render('Cuentas/Index', [
             'cuentas' => $cuentas,

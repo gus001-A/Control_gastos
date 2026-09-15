@@ -3,16 +3,17 @@ import { ref } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
-import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import ProgressBar from '@/Components/ProgressBar.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import CurrencyInput from '@/Components/CurrencyInput.vue';
 import Textarea from '@/Components/Textarea.vue';
 import SelectInput from '@/Components/SelectInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
+import { confirmar } from '@/lib/alertas';
 import { Plus, Pencil, Trash2, Eye } from '@lucide/vue';
 
 const props = defineProps({
@@ -75,9 +76,12 @@ function guardar() {
     }
 }
 
-const confirmando = ref(null);
-function eliminar() {
-    router.delete(route('proyectos.destroy', confirmando.value.id), { onFinish: () => (confirmando.value = null) });
+function eliminar(proyecto) {
+    confirmar({
+        title: 'Eliminar proyecto',
+        content: `¿Eliminar "${proyecto.nombre}" y todo su historial de pagos?`,
+        onOk: () => router.delete(route('proyectos.destroy', proyecto.id)),
+    });
 }
 </script>
 
@@ -117,7 +121,7 @@ function eliminar() {
                     <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(proyecto)">
                         <Pencil :size="13" /> Editar
                     </button>
-                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="confirmando = proyecto">
+                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="eliminar(proyecto)">
                         <Trash2 :size="13" /> Eliminar
                     </button>
                 </div>
@@ -145,7 +149,7 @@ function eliminar() {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <InputLabel value="Cuánto vas a cobrar" />
-                            <TextInput v-model="form.monto_cobrado" type="number" step="0.01" class="mt-1" />
+                            <CurrencyInput v-model="form.monto_cobrado" class="mt-1" />
                             <InputError :message="form.errors.monto_cobrado" />
                         </div>
                         <div v-if="editando">
@@ -181,13 +185,5 @@ function eliminar() {
                 </div>
             </form>
         </Modal>
-
-        <ConfirmDialog
-            :show="!!confirmando"
-            title="Eliminar proyecto"
-            :message="confirmando ? `¿Eliminar '${confirmando.nombre}' y todo su historial de pagos?` : ''"
-            @confirm="eliminar"
-            @cancel="confirmando = null"
-        />
     </AuthenticatedLayout>
 </template>

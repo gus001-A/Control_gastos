@@ -3,16 +3,17 @@ import { ref } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
-import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import ProgressBar from '@/Components/ProgressBar.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import CurrencyInput from '@/Components/CurrencyInput.vue';
 import Textarea from '@/Components/Textarea.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
-import { Plus, Pencil, Trash2, Eye } from '@lucide/vue';
+import { confirmar } from '@/lib/alertas';
+import { Plus, Pencil, Trash2, Eye, CreditCard, CalendarClock, CheckCircle2 } from '@lucide/vue';
 
 const props = defineProps({
     deudas: Array,
@@ -25,7 +26,6 @@ const form = useForm({
     nombre: '',
     acreedor: '',
     monto_total: '',
-    tasa_interes: '',
     fecha_inicio: hoyIso(),
     fecha_limite: '',
     notas: '',
@@ -36,7 +36,6 @@ function abrirCrear() {
     form.nombre = '';
     form.acreedor = '';
     form.monto_total = '';
-    form.tasa_interes = '';
     form.fecha_inicio = hoyIso();
     form.fecha_limite = '';
     form.notas = '';
@@ -50,7 +49,6 @@ function abrirEditar(deuda) {
     form.nombre = deuda.nombre;
     form.acreedor = deuda.acreedor || '';
     form.monto_total = deuda.monto_total;
-    form.tasa_interes = deuda.tasa_interes || '';
     form.fecha_inicio = deuda.fecha_inicio ? deuda.fecha_inicio.slice(0, 10) : '';
     form.fecha_limite = deuda.fecha_limite ? deuda.fecha_limite.slice(0, 10) : '';
     sinLimite.value = !deuda.fecha_limite;
@@ -68,9 +66,12 @@ function guardar() {
     }
 }
 
-const confirmando = ref(null);
-function eliminar() {
-    router.delete(route('deudas.destroy', confirmando.value.id), { onFinish: () => (confirmando.value = null) });
+function eliminar(deuda) {
+    confirmar({
+        title: 'Eliminar deuda',
+        content: `¿Eliminar "${deuda.nombre}" y todo su historial de abonos?`,
+        onOk: () => router.delete(route('deudas.destroy', deuda.id)),
+    });
 }
 </script>
 
@@ -86,35 +87,66 @@ function eliminar() {
             No tienes deudas registradas. ¡Que se mantenga así, o agrega una para llevar el control!
         </div>
 
-        <div v-else class="space-y-4">
-            <div v-for="deuda in deudas" :key="deuda.id" class="animate-fade-in rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition-shadow duration-200 hover:shadow-glow">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <div class="font-bold text-ink-900">{{ deuda.nombre }}</div>
-                        <div v-if="deuda.acreedor" class="text-xs text-ink-400">{{ deuda.acreedor }}</div>
+        <div v-else class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div
+                v-for="(deuda, i) in deudas"
+                :key="deuda.id"
+                class="group relative animate-fade-in overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow"
+                :style="{ animationDelay: `${i * 50}ms` }"
+            >
+                <div class="h-1.5 w-full" :class="deuda.estado === 'pagada' ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-rose-400 to-rose-600'" />
+
+                <div class="p-5">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-110"
+                                :class="deuda.estado === 'pagada' ? 'bg-green-50 text-green-600' : 'bg-rose-50 text-rose-600'"
+                            >
+                                <component :is="deuda.estado === 'pagada' ? CheckCircle2 : CreditCard" :size="20" />
+                            </div>
+                            <div>
+                                <div class="font-bold leading-tight text-ink-900">{{ deuda.nombre }}</div>
+                                <div v-if="deuda.acreedor" class="text-xs text-ink-400">{{ deuda.acreedor }}</div>
+                            </div>
+                        </div>
+                        <span
+                            class="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold"
+                            :class="deuda.estado === 'pagada' ? 'bg-green-50 text-green-700' : 'bg-rose-50 text-rose-700'"
+                        >
+                            {{ deuda.estado === 'pagada' ? 'Pagada' : 'Activa' }}
+                        </span>
                     </div>
-                    <span class="text-xs font-bold" :class="deuda.estado === 'pagada' ? 'text-brand-600' : 'text-rose-600'">
-                        {{ deuda.estado === 'pagada' ? 'Pagada' : 'Activa' }}
-                    </span>
-                </div>
 
-                <ProgressBar :value="deuda.progreso" class="mt-3" :color="deuda.estado === 'pagada' ? '#16a34a' : '#0ea5e9'" />
+                    <div class="mt-5 flex items-baseline justify-between">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-ink-400">Restante</span>
+                        <span class="text-2xl font-extrabold tracking-tight" :class="deuda.estado === 'pagada' ? 'text-green-600' : 'text-rose-600'">
+                            {{ formatCurrency(deuda.restante) }}
+                        </span>
+                    </div>
 
-                <div class="mt-2 flex flex-wrap justify-between gap-2 text-xs text-ink-500">
-                    <span>Pagado {{ formatCurrency(deuda.pagado) }} de {{ formatCurrency(deuda.monto_total) }} · Restan {{ formatCurrency(deuda.restante) }}</span>
-                    <span v-if="deuda.fecha_limite">Fecha límite: {{ formatFecha(deuda.fecha_limite) }}</span>
-                </div>
+                    <div class="mt-2 flex items-center gap-3">
+                        <ProgressBar :value="deuda.progreso" class="flex-1" :color="deuda.estado === 'pagada' ? '#16a34a' : '#9333ea'" />
+                        <span class="w-10 shrink-0 text-right text-xs font-bold text-ink-500">{{ deuda.progreso }}%</span>
+                    </div>
+                    <div class="mt-1.5 flex items-center justify-between text-xs text-ink-400">
+                        <span>Pagado {{ formatCurrency(deuda.pagado) }} de {{ formatCurrency(deuda.monto_total) }}</span>
+                        <span v-if="deuda.fecha_limite" class="inline-flex items-center gap-1">
+                            <CalendarClock :size="12" /> {{ formatFecha(deuda.fecha_limite) }}
+                        </span>
+                    </div>
 
-                <div class="mt-4 flex gap-2">
-                    <Link :href="route('deudas.show', deuda.id)" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:-translate-y-px hover:bg-brand-700 hover:shadow-glow">
-                        <Eye :size="13" /> Ver / abonar
-                    </Link>
-                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(deuda)">
-                        <Pencil :size="13" /> Editar
-                    </button>
-                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="confirmando = deuda">
-                        <Trash2 :size="13" /> Eliminar
-                    </button>
+                    <div class="mt-4 flex gap-2 border-t border-ink-50 pt-4">
+                        <Link :href="route('deudas.show', deuda.id)" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:-translate-y-px hover:bg-brand-700 hover:shadow-glow">
+                            <Eye :size="13" /> Ver / abonar
+                        </Link>
+                        <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(deuda)">
+                            <Pencil :size="13" /> Editar
+                        </button>
+                        <button class="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="eliminar(deuda)">
+                            <Trash2 :size="13" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -133,16 +165,10 @@ function eliminar() {
                         <InputLabel value="Acreedor (opcional)" />
                         <TextInput v-model="form.acreedor" class="mt-1" placeholder="¿A quién le debes?" />
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <InputLabel value="Monto total" />
-                            <TextInput v-model="form.monto_total" type="number" step="0.01" class="mt-1" />
-                            <InputError :message="form.errors.monto_total" />
-                        </div>
-                        <div>
-                            <InputLabel value="Tasa de interés anual % (opcional)" />
-                            <TextInput v-model="form.tasa_interes" type="number" step="0.01" class="mt-1" />
-                        </div>
+                    <div>
+                        <InputLabel value="Monto total" />
+                        <CurrencyInput v-model="form.monto_total" class="mt-1" />
+                        <InputError :message="form.errors.monto_total" />
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -170,13 +196,5 @@ function eliminar() {
                 </div>
             </form>
         </Modal>
-
-        <ConfirmDialog
-            :show="!!confirmando"
-            title="Eliminar deuda"
-            :message="confirmando ? `¿Eliminar '${confirmando.nombre}' y todo su historial de abonos?` : ''"
-            @confirm="eliminar"
-            @cancel="confirmando = null"
-        />
     </AuthenticatedLayout>
 </template>
