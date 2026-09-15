@@ -11,6 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Render (y la mayoría de PaaS) terminan HTTPS en su borde y reenvían
+        // HTTP puro al contenedor; sin esto Laravel genera URLs con http://
+        // y el navegador las bloquea por "mixed content" en una página https://
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
