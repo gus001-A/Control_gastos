@@ -17,17 +17,6 @@ class ReporteController extends Controller
         $userId = Auth::id();
         $anio = (int) request('anio', now()->year);
 
-        $gastosPorCategoria = Movimiento::where('movimientos.user_id', $userId)
-            ->where('movimientos.tipo', 'gasto')
-            ->whereBetween('movimientos.fecha', ["{$anio}-01-01", "{$anio}-12-31"])
-            ->leftJoin('categorias', 'categorias.id', '=', 'movimientos.categoria_id')
-            ->selectRaw("COALESCE(categorias.nombre, 'Sin categoría') as categoria")
-            ->selectRaw("COALESCE(categorias.color, '#94a3b8') as color")
-            ->selectRaw('SUM(movimientos.monto) as total')
-            ->groupBy('categoria', 'color')
-            ->orderByDesc('total')
-            ->get();
-
         $porMesRaw = Movimiento::where('user_id', $userId)
             ->whereBetween('fecha', ["{$anio}-01-01", "{$anio}-12-31"])
             ->selectRaw('CAST(strftime(\'%m\', fecha) AS INTEGER) as mes')
@@ -82,7 +71,6 @@ class ReporteController extends Controller
         return Inertia::render('Reportes/Index', [
             'anio' => $anio,
             'anios' => range(now()->year, now()->year - 5),
-            'gastosPorCategoria' => $gastosPorCategoria,
             'porMes' => $porMes,
             'evolucionSaldo' => $evolucionSaldo,
             'proyectos' => $proyectos,

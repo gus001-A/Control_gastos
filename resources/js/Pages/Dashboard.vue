@@ -6,7 +6,6 @@ import StatCard from '@/Components/StatCard.vue';
 import Badge from '@/Components/Badge.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
-import DonutChart from '@/Components/Charts/DonutChart.vue';
 import { Wallet, ArrowUpCircle, ArrowDownCircle, TrendingDown, Briefcase, Repeat, CheckCircle2 } from '@lucide/vue';
 
 const props = defineProps({
@@ -22,11 +21,7 @@ function pagarCargo(cargo) {
     router.post(route('recurrentes.pagar', cargo.id), { fecha: hoyIso() }, { preserveScroll: true });
 }
 
-const chartData = computed(() => ({
-    labels: props.gastosPorCategoria.map((c) => c.categoria),
-    values: props.gastosPorCategoria.map((c) => Number(c.total)),
-    colors: props.gastosPorCategoria.map((c) => c.color),
-}));
+const maxCategoria = computed(() => Math.max(1, ...props.gastosPorCategoria.map((c) => Number(c.total))));
 </script>
 
 <template>
@@ -79,7 +74,20 @@ const chartData = computed(() => ({
                 <div v-if="gastosPorCategoria.length === 0" class="flex h-56 items-center justify-center text-sm text-ink-400">
                     Sin gastos este mes.
                 </div>
-                <DonutChart v-else :labels="chartData.labels" :values="chartData.values" :colors="chartData.colors" />
+                <ul v-else class="space-y-3">
+                    <li v-for="c in gastosPorCategoria" :key="c.categoria">
+                        <div class="mb-1 flex items-center justify-between text-sm">
+                            <span class="font-semibold text-ink-800">{{ c.categoria }}</span>
+                            <span class="font-bold text-ink-900">{{ formatCurrency(c.total) }}</span>
+                        </div>
+                        <div class="h-2 w-full overflow-hidden rounded-full bg-ink-100">
+                            <div
+                                class="h-full rounded-full transition-all duration-500 ease-out"
+                                :style="{ width: (Number(c.total) / maxCategoria) * 100 + '%', backgroundColor: c.color }"
+                            />
+                        </div>
+                    </li>
+                </ul>
             </Card>
         </div>
 

@@ -13,7 +13,9 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
-import { Plus, ArrowLeftRight, Pencil, Trash2, Filter, X } from '@lucide/vue';
+import { Plus, ArrowLeftRight, Pencil, Trash2, Filter, X, ArrowUpCircle, ArrowDownCircle, Scale } from '@lucide/vue';
+
+const ORIGENES_BLOQUEADOS = ['abono_deuda', 'pago_proyecto'];
 
 const props = defineProps({
     movimientos: Array,
@@ -21,6 +23,7 @@ const props = defineProps({
     cuentas: Array,
     categorias: Array,
     filtros: Object,
+    totales: Object,
 });
 
 const tab = ref('movimientos');
@@ -31,13 +34,15 @@ const filtros = ref({
     categoria_id: props.filtros.categoria_id || '',
     tipo: props.filtros.tipo || '',
     texto: props.filtros.texto || '',
+    fecha_inicio: props.filtros.fecha_inicio || '',
+    fecha_fin: props.filtros.fecha_fin || '',
 });
 
 function aplicarFiltros() {
     router.get(route('movimientos.index'), filtros.value, { preserveState: true, replace: true });
 }
 function limpiarFiltros() {
-    filtros.value = { cuenta_id: '', categoria_id: '', tipo: '', texto: '' };
+    filtros.value = { cuenta_id: '', categoria_id: '', tipo: '', texto: '', fecha_inicio: '', fecha_fin: '' };
     aplicarFiltros();
 }
 
@@ -68,7 +73,7 @@ function abrirCrear() {
 }
 
 function abrirEditar(m) {
-    if (m.origen !== 'manual') {
+    if (ORIGENES_BLOQUEADOS.includes(m.origen)) {
         alert('Este movimiento se generó automáticamente desde una deuda o proyecto. Edítalo desde esa sección.');
         return;
     }
@@ -159,6 +164,14 @@ function eliminarTransferencia() {
                         <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
                     </SelectInput>
                 </div>
+                <div class="w-36">
+                    <InputLabel value="Desde" />
+                    <TextInput v-model="filtros.fecha_inicio" type="date" class="mt-1" />
+                </div>
+                <div class="w-36">
+                    <InputLabel value="Hasta" />
+                    <TextInput v-model="filtros.fecha_fin" type="date" class="mt-1" />
+                </div>
                 <div class="min-w-[180px] flex-1">
                     <InputLabel value="Buscar" />
                     <TextInput v-model="filtros.texto" class="mt-1" placeholder="Buscar en descripción..." @keyup.enter="aplicarFiltros" />
@@ -169,6 +182,32 @@ function eliminarTransferencia() {
                 </button>
             </div>
         </Card>
+
+        <div class="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div class="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 shadow-card">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50 text-green-600"><ArrowUpCircle :size="17" /></div>
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wide text-ink-400">Ingresos</div>
+                    <div class="text-lg font-extrabold text-green-600">{{ formatCurrency(totales.ingresos) }}</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 shadow-card">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600"><ArrowDownCircle :size="17" /></div>
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wide text-ink-400">Gastos</div>
+                    <div class="text-lg font-extrabold text-rose-600">{{ formatCurrency(totales.gastos) }}</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 shadow-card">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><Scale :size="17" /></div>
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wide text-ink-400">Balance</div>
+                    <div class="text-lg font-extrabold" :class="totales.ingresos - totales.gastos < 0 ? 'text-rose-600' : 'text-ink-900'">
+                        {{ formatCurrency(totales.ingresos - totales.gastos) }}
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="mb-3 flex gap-1 border-b border-ink-200">
             <button
@@ -223,7 +262,7 @@ function eliminarTransferencia() {
                                 <div class="flex justify-end gap-3 whitespace-nowrap">
                                     <button class="text-ink-400 transition hover:text-brand-600" title="Editar" @click="abrirEditar(m)"><Pencil :size="15" /></button>
                                     <button
-                                        v-if="m.origen === 'manual'"
+                                        v-if="!ORIGENES_BLOQUEADOS.includes(m.origen)"
                                         class="text-ink-400 transition hover:text-rose-600"
                                         title="Eliminar"
                                         @click="confirmandoMov = m"

@@ -4,16 +4,14 @@ import { Head, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Card from '@/Components/Card.vue';
 import SelectInput from '@/Components/SelectInput.vue';
-import DonutChart from '@/Components/Charts/DonutChart.vue';
 import BarChart from '@/Components/Charts/BarChart.vue';
 import LineChart from '@/Components/Charts/LineChart.vue';
-import HorizontalBarChart from '@/Components/Charts/HorizontalBarChart.vue';
+import StackedBarChart from '@/Components/Charts/StackedBarChart.vue';
 import { formatCurrency } from '@/utils';
 
 const props = defineProps({
     anio: Number,
     anios: Array,
-    gastosPorCategoria: Array,
     porMes: Array,
     evolucionSaldo: Array,
     proyectos: Array,
@@ -23,12 +21,6 @@ const props = defineProps({
 function cambiarAnio(e) {
     router.get(route('reportes.index'), { anio: e.target.value }, { preserveState: true });
 }
-
-const pieData = computed(() => ({
-    labels: props.gastosPorCategoria.map((c) => c.categoria),
-    values: props.gastosPorCategoria.map((c) => Number(c.total)),
-    colors: props.gastosPorCategoria.map((c) => c.color),
-}));
 
 const barData = computed(() => ({
     labels: props.porMes.map((m) => m.nombre),
@@ -59,13 +51,6 @@ const proyectosData = computed(() => ({
         </div>
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Card title="Gastos por categoría (año seleccionado)">
-                <div v-if="gastosPorCategoria.length === 0" class="flex h-56 items-center justify-center text-sm text-ink-400">
-                    Sin gastos registrados.
-                </div>
-                <DonutChart v-else :labels="pieData.labels" :values="pieData.values" :colors="pieData.colors" />
-            </Card>
-
             <Card title="Ingresos vs. gastos por mes">
                 <BarChart :labels="barData.labels" :ingresos="barData.ingresos" :gastos="barData.gastos" />
             </Card>
@@ -74,11 +59,11 @@ const proyectosData = computed(() => ({
                 <LineChart :labels="lineData.labels" :values="lineData.values" />
             </Card>
 
-            <Card title="Rentabilidad de proyectos freelance">
+            <Card title="Rentabilidad de proyectos freelance" class="lg:col-span-2">
                 <div v-if="proyectos.length === 0" class="flex h-56 items-center justify-center text-sm text-ink-400">
                     Sin proyectos registrados.
                 </div>
-                <HorizontalBarChart v-else :labels="proyectosData.labels" :pagado="proyectosData.pagado" :pendiente="proyectosData.pendiente" />
+                <StackedBarChart v-else :labels="proyectosData.labels" :pagado="proyectosData.pagado" :pendiente="proyectosData.pendiente" />
             </Card>
         </div>
 

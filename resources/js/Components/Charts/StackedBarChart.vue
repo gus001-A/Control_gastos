@@ -15,13 +15,12 @@ const props = defineProps({
 const data = computed(() => ({
     labels: props.labels,
     datasets: [
-        { label: 'Pagado', data: props.pagado, backgroundColor: '#16a34a', borderRadius: 4 },
-        { label: 'Pendiente', data: props.pendiente, backgroundColor: '#fbbf24', borderRadius: 4 },
+        { label: 'Pagado', data: props.pagado, backgroundColor: '#16a34a', borderRadius: 4, maxBarThickness: 42 },
+        { label: 'Pendiente', data: props.pendiente, backgroundColor: '#fbbf24', borderRadius: 4, maxBarThickness: 42 },
     ],
 }));
 
 const options = {
-    indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -29,8 +28,8 @@ const options = {
         tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` } },
     },
     scales: {
-        x: { stacked: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, color: '#94a3b8' } },
-        y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }, color: '#94a3b8' } },
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }, color: '#94a3b8' } },
+        y: { stacked: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, color: '#94a3b8' } },
     },
 };
 </script>
