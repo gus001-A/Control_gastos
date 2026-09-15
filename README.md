@@ -55,11 +55,14 @@ Crea un repositorio nuevo (privado si quieres) en [github.com/new](https://githu
 
 1. Ve a [supabase.com](https://supabase.com) y crea una cuenta gratis.
 2. "New project" → ponle un nombre (ej. `control-gastos`) → elige una contraseña fuerte para la base de datos (guárdala) → elige la región más cercana a ti.
-3. Cuando esté listo, ve a **Project Settings → Database → Connection string** y copia la que dice **"Transaction pooler"** (puerto 6543) — se ve algo así:
-   ```
-   postgresql://postgres.xxxxxxxxxxxx:[TU-PASSWORD]@aws-0-xxxxx.pooler.supabase.com:6543/postgres
-   ```
-   Reemplaza `[TU-PASSWORD]` por la contraseña que pusiste. Guarda esta URL completa, la vas a necesitar.
+3. Cuando esté listo, dale clic al botón **"Connect"** (arriba, junto al nombre del proyecto) → pestaña **"Direct"** → elige **"Transaction pooler"** (puerto 6543, es la que mejor le funciona a Render). Ahí abajo vas a ver los **"Connection parameters"** por separado:
+   - `host`: algo como `aws-0-xxxxx.pooler.supabase.com`
+   - `port`: `6543`
+   - `database`: `postgres`
+   - `user`: algo como `postgres.xxxxxxxxxxxx`
+   - la contraseña es la que generaste al crear el proyecto.
+
+   Usamos estos valores por separado (no la URL completa) para no tener problemas si tu contraseña trae símbolos raros.
 
 ### 3. Crea el servicio en Render
 
@@ -67,7 +70,7 @@ Crea un repositorio nuevo (privado si quieres) en [github.com/new](https://githu
 2. **New +** → **Blueprint** → selecciona el repositorio que subiste a GitHub. Render va a leer el archivo `render.yaml` que ya viene en el proyecto y va a preguntar por las variables marcadas como `sync: false`:
    - `APP_KEY`: genera una localmente con `php artisan key:generate --show` y pégala aquí (algo como `base64:...`).
    - `APP_URL`: la vas a saber hasta que Render te dé la URL (ej. `https://control-gastos.onrender.com`) — puedes dejarla en blanco al inicio y actualizarla después en **Environment**.
-   - `DB_URL`: pega la connection string de Supabase del paso 2.
+   - `DB_HOST`, `DB_USERNAME`, `DB_PASSWORD`: los valores de Supabase del paso 2 (`DB_PORT` y `DB_DATABASE` ya vienen puestos).
 3. Dale a **Apply** / **Deploy**. La primera vez tarda varios minutos porque compila todo dentro de Docker.
 4. Cuando termine, abre la URL que te dio Render, entra a `/register` y crea tu cuenta.
 
