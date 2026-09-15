@@ -14,7 +14,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
 import { confirmar, exito, error as mostrarError } from '@/lib/alertas';
-import { Plus, Pencil, Trash2, CheckCircle2, Repeat, Home, Dumbbell, Tv, Wifi, ShoppingBag } from '@lucide/vue';
+import { Plus, Pencil, Trash2, CheckCircle2, Repeat, Home, Dumbbell, Tv, Wifi, ShoppingBag, Wallet, CalendarDays } from '@lucide/vue';
 
 const props = defineProps({
     cargos: Array,
@@ -140,47 +140,51 @@ function pagarAhora(cargo) {
             <div
                 v-for="(cargo, i) in cargos"
                 :key="cargo.id"
-                class="group animate-fade-in rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow"
+                class="group animate-fade-in overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow"
                 :class="{ 'opacity-60': !cargo.activo }"
                 :style="{ animationDelay: `${i * 40}ms` }"
             >
-                <div class="flex items-start justify-between gap-2">
-                    <div class="flex items-center gap-2.5">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-transform duration-200 group-hover:scale-110">
-                            <component :is="iconoPara(cargo.nombre)" :size="17" stroke-width="2.2" />
+                <div class="h-1.5 w-full" :style="{ backgroundColor: estadoFecha(cargo).color }" />
+
+                <div class="p-5">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-transform duration-200 group-hover:scale-110">
+                                <component :is="iconoPara(cargo.nombre)" :size="17" stroke-width="2.2" />
+                            </div>
+                            <div>
+                                <div class="font-bold text-ink-900">{{ cargo.nombre }}</div>
+                                <div class="inline-flex items-center gap-1 text-xs text-ink-400"><Wallet :size="11" /> {{ cargo.cuenta.nombre }}</div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="font-bold text-ink-900">{{ cargo.nombre }}</div>
-                            <div class="text-xs text-ink-400">{{ cargo.cuenta.nombre }}</div>
-                        </div>
+                        <Badge v-if="cargo.categoria" :color="cargo.categoria.color">{{ cargo.categoria.nombre }}</Badge>
                     </div>
-                    <Badge v-if="cargo.categoria" :color="cargo.categoria.color">{{ cargo.categoria.nombre }}</Badge>
-                </div>
 
-                <div class="mt-3 flex items-end justify-between">
-                    <div class="text-2xl font-extrabold tracking-tight text-ink-900">{{ formatCurrency(cargo.monto) }}</div>
-                    <span class="text-xs font-semibold text-ink-400">{{ frecuencias[cargo.frecuencia] }}</span>
-                </div>
+                    <div class="mt-3 flex items-end justify-between">
+                        <div class="text-2xl font-extrabold tracking-tight text-ink-900">{{ formatCurrency(cargo.monto) }}</div>
+                        <span class="text-xs font-semibold text-ink-400">{{ frecuencias[cargo.frecuencia] }}</span>
+                    </div>
 
-                <div class="mt-2 flex items-center justify-between text-xs">
-                    <span class="text-ink-400">Próximo: {{ formatFecha(cargo.proxima_fecha) }}</span>
-                    <span class="font-bold" :style="{ color: estadoFecha(cargo).color }">{{ estadoFecha(cargo).texto }}</span>
-                </div>
+                    <div class="mt-2 flex items-center justify-between text-xs">
+                        <span class="inline-flex items-center gap-1 text-ink-400"><CalendarDays :size="11" /> {{ formatFecha(cargo.proxima_fecha) }}</span>
+                        <span class="font-bold" :style="{ color: estadoFecha(cargo).color }">{{ estadoFecha(cargo).texto }}</span>
+                    </div>
 
-                <div class="mt-4 flex gap-2">
-                    <button
-                        class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:-translate-y-px hover:bg-brand-700 hover:shadow-glow disabled:pointer-events-none disabled:opacity-40"
-                        :disabled="!cargo.activo"
-                        @click="pagarAhora(cargo)"
-                    >
-                        <CheckCircle2 :size="13" /> Pagar ahora
-                    </button>
-                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(cargo)">
-                        <Pencil :size="13" />
-                    </button>
-                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="eliminar(cargo)">
-                        <Trash2 :size="13" />
-                    </button>
+                    <div class="mt-4 flex gap-2 border-t border-ink-50 pt-4">
+                        <button
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:-translate-y-px hover:bg-brand-700 hover:shadow-glow disabled:pointer-events-none disabled:opacity-40"
+                            :disabled="!cargo.activo"
+                            @click="pagarAhora(cargo)"
+                        >
+                            <CheckCircle2 :size="13" /> Pagar ahora
+                        </button>
+                        <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(cargo)">
+                            <Pencil :size="13" />
+                        </button>
+                        <button class="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="eliminar(cargo)">
+                            <Trash2 :size="13" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

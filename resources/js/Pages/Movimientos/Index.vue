@@ -271,7 +271,9 @@ function eliminarTransferencia(t) {
                             class="animate-fade-in border-b border-ink-50 transition-colors last:border-0 hover:bg-ink-50/60"
                             :style="{ animationDelay: `${i * 25}ms` }"
                         >
-                            <td class="px-5 py-3 text-ink-500">{{ formatFecha(m.fecha) }}</td>
+                            <td class="px-5 py-3 text-ink-500">
+                                <span class="inline-flex items-center gap-1.5"><CalendarDays :size="12" class="text-ink-300" /> {{ formatFecha(m.fecha) }}</span>
+                            </td>
                             <td class="px-5 py-3">
                                 <Badge :color="m.tipo === 'ingreso' ? '#16a34a' : '#e11d48'">
                                     <component :is="m.tipo === 'ingreso' ? ArrowUpCircle : ArrowDownCircle" :size="11" class="mr-1" />
@@ -335,7 +337,9 @@ function eliminarTransferencia(t) {
                             class="animate-fade-in border-b border-ink-50 transition-colors last:border-0 hover:bg-ink-50/60"
                             :style="{ animationDelay: `${i * 25}ms` }"
                         >
-                            <td class="px-5 py-3 text-ink-500">{{ formatFecha(t.fecha) }}</td>
+                            <td class="px-5 py-3 text-ink-500">
+                                <span class="inline-flex items-center gap-1.5"><CalendarDays :size="12" class="text-ink-300" /> {{ formatFecha(t.fecha) }}</span>
+                            </td>
                             <td class="px-5 py-3 text-ink-800">{{ t.cuenta_origen.nombre }}</td>
                             <td class="px-5 py-3">
                                 <span class="inline-flex items-center gap-1 text-ink-800"><ArrowLeftRight :size="12" class="text-brand-500" /> {{ t.cuenta_destino.nombre }}</span>

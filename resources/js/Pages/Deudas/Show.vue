@@ -14,7 +14,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
 import { confirmar } from '@/lib/alertas';
-import { Plus, Trash2, ArrowLeft, CreditCard } from '@lucide/vue';
+import { Plus, Trash2, ArrowLeft, CreditCard, TrendingDown, Wallet, StickyNote, CalendarDays, History } from '@lucide/vue';
 
 const props = defineProps({
     deuda: Object,
@@ -104,33 +104,34 @@ function eliminarAbono(abono) {
             </div>
         </Card>
 
-        <Card title="Historial de abonos" class="mt-6" :padded="false">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="border-b border-ink-100 text-left text-xs font-semibold uppercase tracking-wide text-ink-400">
-                            <th class="px-5 py-3">Fecha</th>
-                            <th class="px-5 py-3">Cuenta</th>
-                            <th class="px-5 py-3">Notas</th>
-                            <th class="px-5 py-3 text-right">Monto</th>
-                            <th class="px-5 py-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-if="abonos.length === 0">
-                            <td colspan="5" class="px-5 py-10 text-center text-ink-400">Aún no has registrado abonos.</td>
-                        </tr>
-                        <tr v-for="a in abonos" :key="a.id" class="border-b border-ink-50 last:border-0 hover:bg-ink-50/60">
-                            <td class="px-5 py-3 text-ink-500">{{ formatFecha(a.fecha) }}</td>
-                            <td class="px-5 py-3 text-ink-800">{{ a.cuenta ? a.cuenta.nombre : '-' }}</td>
-                            <td class="px-5 py-3 text-ink-500">{{ a.notas || '-' }}</td>
-                            <td class="px-5 py-3 text-right font-semibold text-brand-700">{{ formatCurrency(a.monto) }}</td>
-                            <td class="px-5 py-3 text-right">
-                                <button class="text-ink-400 transition hover:text-rose-600" title="Eliminar" @click="eliminarAbono(a)"><Trash2 :size="15" /></button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <Card title="Historial de abonos" :icon="History" class="mt-6" :padded="false">
+            <div v-if="abonos.length === 0" class="px-5 py-10 text-center text-sm text-ink-400">Aún no has registrado abonos.</div>
+            <div v-else class="divide-y divide-ink-50">
+                <div
+                    v-for="(a, i) in abonos"
+                    :key="a.id"
+                    class="group flex animate-fade-in items-center gap-4 px-5 py-4 transition-colors hover:bg-ink-50/60"
+                    :style="{ animationDelay: `${i * 30}ms` }"
+                >
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                        <TrendingDown :size="17" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                            <span class="inline-flex items-center gap-1 text-sm font-bold text-ink-900"><CalendarDays :size="12" class="text-ink-300" /> {{ formatFecha(a.fecha) }}</span>
+                            <span v-if="a.cuenta" class="inline-flex items-center gap-1 text-xs font-medium text-ink-400"><Wallet :size="11" /> {{ a.cuenta.nombre }}</span>
+                        </div>
+                        <div v-if="a.notas" class="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-400"><StickyNote :size="11" /> {{ a.notas }}</div>
+                    </div>
+                    <div class="shrink-0 text-right text-base font-extrabold text-brand-700">{{ formatCurrency(a.monto) }}</div>
+                    <button
+                        class="shrink-0 text-ink-300 opacity-0 transition hover:text-rose-600 group-hover:opacity-100"
+                        title="Eliminar"
+                        @click="eliminarAbono(a)"
+                    >
+                        <Trash2 :size="15" />
+                    </button>
+                </div>
             </div>
         </Card>
 
