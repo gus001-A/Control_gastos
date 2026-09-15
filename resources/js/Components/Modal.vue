@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { X } from '@lucide/vue';
 
 const props = defineProps({
     show: {
@@ -79,42 +80,39 @@ const maxWidthClass = computed(() => {
         class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
         ref="dialog"
     >
-        <div
-            class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
-            scroll-region
+        <Transition
+            enter-active-class="ease-out duration-300"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="ease-in duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
         >
-            <Transition
-                enter-active-class="ease-out duration-300"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="ease-in duration-200"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <div
-                    v-show="show"
-                    class="fixed inset-0 transform transition-all"
-                    @click="close"
-                >
-                    <div
-                        class="absolute inset-0 bg-ink-500 opacity-75 dark:bg-ink-900"
-                    />
-                </div>
-            </Transition>
+            <div v-show="show" class="fixed inset-0 z-50 bg-ink-900/60 backdrop-blur-sm" @click="close" />
+        </Transition>
 
+        <div class="fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto p-4" scroll-region>
             <Transition
                 enter-active-class="ease-out duration-300"
-                enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+                enter-from-class="opacity-0 translate-y-4 scale-95"
+                enter-to-class="opacity-100 translate-y-0 scale-100"
                 leave-active-class="ease-in duration-200"
-                leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-                leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                leave-from-class="opacity-100 translate-y-0 scale-100"
+                leave-to-class="opacity-0 translate-y-4 scale-95"
             >
                 <div
                     v-show="show"
-                    class="mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full dark:bg-ink-800"
+                    class="relative my-8 w-full transform overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-ink-900/5 transition-all"
                     :class="maxWidthClass"
                 >
+                    <button
+                        v-if="closeable"
+                        type="button"
+                        class="absolute right-4 top-4 z-10 rounded-lg p-1.5 text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
+                        @click="close"
+                    >
+                        <X :size="18" />
+                    </button>
                     <slot v-if="showSlot" />
                 </div>
             </Transition>

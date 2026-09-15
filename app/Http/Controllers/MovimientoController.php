@@ -11,6 +11,9 @@ use Inertia\Response;
 
 class MovimientoController extends Controller
 {
+    /** Orígenes que no se pueden editar/eliminar directo porque otra pantalla lleva su cuenta (deudas, proyectos). */
+    private const ORIGENES_BLOQUEADOS = ['abono_deuda', 'pago_proyecto'];
+
     public function index(Request $request): Response
     {
         $userId = Auth::id();
@@ -30,6 +33,17 @@ class MovimientoController extends Controller
         if ($request->filled('texto')) {
             $query->where('descripcion', 'like', '%'.$request->string('texto').'%');
         }
+        if ($request->filled('fecha_inicio')) {
+            $query->where('fecha', '>=', $request->string('fecha_inicio'));
+        }
+        if ($request->filled('fecha_fin')) {
+            $query->where('fecha', '<=', $request->string('fecha_fin'));
+        }
+
+        $totales = (clone $query)
+            ->selectRaw("COALESCE(SUM(CASE WHEN tipo = 'ingreso' THEN monto ELSE 0 END), 0) as ingresos")
+            ->selectRaw("COALESCE(SUM(CASE WHEN tipo = 'gasto' THEN monto ELSE 0 END), 0) as gastos")
+            ->first();
 
         $movimientos = $query->orderByDesc('fecha')->orderByDesc('id')->limit(500)->get();
 
@@ -45,7 +59,11 @@ class MovimientoController extends Controller
             'transferencias' => $transferenciasList,
             'cuentas' => Auth::user()->cuentas()->orderBy('nombre')->get(['id', 'nombre', 'activa', 'color']),
             'categorias' => Auth::user()->categorias()->orderBy('tipo')->orderBy('nombre')->get(),
-            'filtros' => $request->only(['cuenta_id', 'categoria_id', 'tipo', 'texto']),
+            'filtros' => $request->only(['cuenta_id', 'categoria_id', 'tipo', 'texto', 'fecha_inicio', 'fecha_fin']),
+            'totales' => [
+                'ingresos' => round((float) $totales->ingresos, 2),
+                'gastos' => round((float) $totales->gastos, 2),
+            ],
         ]);
     }
 
@@ -63,7 +81,7 @@ class MovimientoController extends Controller
     {
         $this->autorizar($movimiento);
 
-        if ($movimiento->origen !== 'manual') {
+        if (in_array($movimiento->origen, self::ORIGENES_BLOQUEADOS, true)) {
             return back()->with('error', 'Este movimiento se generó automáticamente; edítalo desde deudas o proyectos.');
         }
 
@@ -76,7 +94,7 @@ class MovimientoController extends Controller
     {
         $this->autorizar($movimiento);
 
-        if ($movimiento->origen !== 'manual') {
+        if (in_array($movimiento->origen, self::ORIGENES_BLOQUEADOS, true)) {
             return back()->with('error', 'Este movimiento viene de un abono o pago; elimínalo desde esa sección.');
         }
 
