@@ -13,7 +13,7 @@ class Movimiento extends Model
 
     protected $fillable = [
         'user_id', 'cuenta_id', 'categoria_id', 'tipo', 'monto', 'descripcion',
-        'fecha', 'deuda_id', 'proyecto_id', 'origen',
+        'fecha', 'deuda_id', 'proyecto_id', 'cargo_recurrente_id', 'origen',
     ];
 
     protected $casts = [
@@ -44,5 +44,10 @@ class Movimiento extends Model
     public function proyecto(): BelongsTo
     {
         return $this->belongsTo(Proyecto::class);
+    }
+
+    public function cargoRecurrente(): BelongsTo
+    {
+        return $this->belongsTo(CargoRecurrente::class);
     }
 }

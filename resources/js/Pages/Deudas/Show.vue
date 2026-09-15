@@ -13,6 +13,7 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
+import { Plus, Trash2, ArrowLeft } from '@lucide/vue';
 
 const props = defineProps({
     deuda: Object,
@@ -51,26 +52,26 @@ function eliminarAbono() {
     <Head :title="deuda.nombre" />
 
     <AuthenticatedLayout>
-        <Link :href="route('deudas.index')" class="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-ink-900">
-            ← Volver a deudas
+        <Link :href="route('deudas.index')" class="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-500 transition hover:text-ink-900">
+            <ArrowLeft :size="15" /> Volver a deudas
         </Link>
 
         <Card>
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h1 class="text-xl font-extrabold text-ink-900">{{ deuda.nombre }}</h1>
-                    <p class="mt-1 text-sm text-gray-500">
+                    <p class="mt-1 text-sm text-ink-500">
                         <span v-if="deuda.acreedor">Acreedor: {{ deuda.acreedor }} · </span>
                         <span v-if="deuda.fecha_limite">Fecha límite: {{ formatFecha(deuda.fecha_limite) }} · </span>
                         <span v-if="deuda.tasa_interes">Tasa: {{ deuda.tasa_interes }}% anual · </span>
-                        Estado: {{ deuda.estado === 'pagada' ? 'Pagada ✅' : 'Activa' }}
+                        Estado: {{ deuda.estado === 'pagada' ? 'Pagada' : 'Activa' }}
                     </p>
                 </div>
-                <PrimaryButton @click="abrirAbono">+ Registrar abono</PrimaryButton>
+                <PrimaryButton @click="abrirAbono"><Plus :size="16" /> Registrar abono</PrimaryButton>
             </div>
 
             <ProgressBar :value="deuda.progreso" class="mt-5" :color="deuda.estado === 'pagada' ? '#16a34a' : '#0ea5e9'" />
-            <div class="mt-2 text-sm text-gray-600">
+            <div class="mt-2 text-sm text-ink-600">
                 Total: <strong>{{ formatCurrency(deuda.monto_total) }}</strong> ·
                 Pagado: <strong class="text-brand-700">{{ formatCurrency(deuda.pagado) }}</strong> ·
                 Restante: <strong class="text-rose-600">{{ formatCurrency(deuda.restante) }}</strong>
@@ -81,7 +82,7 @@ function eliminarAbono() {
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        <tr class="border-b border-ink-100 text-left text-xs font-semibold uppercase tracking-wide text-ink-400">
                             <th class="px-5 py-3">Fecha</th>
                             <th class="px-5 py-3">Cuenta</th>
                             <th class="px-5 py-3">Notas</th>
@@ -91,15 +92,15 @@ function eliminarAbono() {
                     </thead>
                     <tbody>
                         <tr v-if="abonos.length === 0">
-                            <td colspan="5" class="px-5 py-10 text-center text-gray-400">Aún no has registrado abonos.</td>
+                            <td colspan="5" class="px-5 py-10 text-center text-ink-400">Aún no has registrado abonos.</td>
                         </tr>
-                        <tr v-for="a in abonos" :key="a.id" class="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
-                            <td class="px-5 py-3 text-gray-500">{{ formatFecha(a.fecha) }}</td>
+                        <tr v-for="a in abonos" :key="a.id" class="border-b border-ink-50 last:border-0 hover:bg-ink-50/60">
+                            <td class="px-5 py-3 text-ink-500">{{ formatFecha(a.fecha) }}</td>
                             <td class="px-5 py-3 text-ink-800">{{ a.cuenta ? a.cuenta.nombre : '-' }}</td>
-                            <td class="px-5 py-3 text-gray-500">{{ a.notas || '-' }}</td>
+                            <td class="px-5 py-3 text-ink-500">{{ a.notas || '-' }}</td>
                             <td class="px-5 py-3 text-right font-semibold text-brand-700">{{ formatCurrency(a.monto) }}</td>
                             <td class="px-5 py-3 text-right">
-                                <button class="text-xs font-semibold text-rose-500 hover:text-rose-700" @click="confirmando = a">Eliminar</button>
+                                <button class="text-ink-400 transition hover:text-rose-600" title="Eliminar" @click="confirmando = a"><Trash2 :size="15" /></button>
                             </td>
                         </tr>
                     </tbody>

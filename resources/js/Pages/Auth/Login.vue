@@ -5,6 +5,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import PasswordInput from '@/Components/PasswordInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 defineProps({
@@ -48,7 +49,7 @@ const submit = () => {
 
             <div class="mt-4">
                 <InputLabel for="password" value="Contraseña" />
-                <TextInput id="password" type="password" class="mt-1" v-model="form.password" required autocomplete="current-password" />
+                <PasswordInput id="password" class="mt-1" v-model="form.password" required autocomplete="current-password" />
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 

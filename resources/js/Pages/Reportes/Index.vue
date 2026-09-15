@@ -60,7 +60,7 @@ const proyectosData = computed(() => ({
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card title="Gastos por categoría (año seleccionado)">
-                <div v-if="gastosPorCategoria.length === 0" class="flex h-56 items-center justify-center text-sm text-gray-400">
+                <div v-if="gastosPorCategoria.length === 0" class="flex h-56 items-center justify-center text-sm text-ink-400">
                     Sin gastos registrados.
                 </div>
                 <DonutChart v-else :labels="pieData.labels" :values="pieData.values" :colors="pieData.colors" />
@@ -75,7 +75,7 @@ const proyectosData = computed(() => ({
             </Card>
 
             <Card title="Rentabilidad de proyectos freelance">
-                <div v-if="proyectos.length === 0" class="flex h-56 items-center justify-center text-sm text-gray-400">
+                <div v-if="proyectos.length === 0" class="flex h-56 items-center justify-center text-sm text-ink-400">
                     Sin proyectos registrados.
                 </div>
                 <HorizontalBarChart v-else :labels="proyectosData.labels" :pagado="proyectosData.pagado" :pendiente="proyectosData.pendiente" />
@@ -83,8 +83,8 @@ const proyectosData = computed(() => ({
         </div>
 
         <Card title="Resumen de deudas" class="mt-6">
-            <div v-if="resumenDeudas.totalDeudas === 0" class="text-sm text-gray-400">No tienes deudas registradas.</div>
-            <div v-else class="flex flex-wrap gap-x-8 gap-y-2 text-sm text-gray-600">
+            <div v-if="resumenDeudas.totalDeudas === 0" class="text-sm text-ink-400">No tienes deudas registradas.</div>
+            <div v-else class="flex flex-wrap gap-x-8 gap-y-2 text-sm text-ink-600">
                 <span>Total histórico: <strong class="text-ink-900">{{ formatCurrency(resumenDeudas.total) }}</strong></span>
                 <span>Pagado: <strong class="text-brand-700">{{ formatCurrency(resumenDeudas.pagado) }}</strong></span>
                 <span>Restante: <strong class="text-rose-600">{{ formatCurrency(resumenDeudas.restante) }}</strong></span>

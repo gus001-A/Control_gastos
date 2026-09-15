@@ -13,6 +13,7 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
+import { Plus, ArrowLeftRight, Pencil, Trash2, Filter, X } from '@lucide/vue';
 
 const props = defineProps({
     movimientos: Array,
@@ -130,8 +131,8 @@ function eliminarTransferencia() {
 
     <AuthenticatedLayout title="Movimientos" subtitle="Ingresos, gastos y transferencias entre cuentas">
         <div class="mb-5 flex flex-wrap justify-end gap-2">
-            <SecondaryButton @click="abrirTransferencia">⇄ Transferir</SecondaryButton>
-            <PrimaryButton @click="abrirCrear">+ Nuevo movimiento</PrimaryButton>
+            <SecondaryButton @click="abrirTransferencia"><ArrowLeftRight :size="15" /> Transferir</SecondaryButton>
+            <PrimaryButton @click="abrirCrear"><Plus :size="16" /> Nuevo movimiento</PrimaryButton>
         </div>
 
         <Card class="mb-5">
@@ -162,22 +163,24 @@ function eliminarTransferencia() {
                     <InputLabel value="Buscar" />
                     <TextInput v-model="filtros.texto" class="mt-1" placeholder="Buscar en descripción..." @keyup.enter="aplicarFiltros" />
                 </div>
-                <SecondaryButton @click="aplicarFiltros">Filtrar</SecondaryButton>
-                <button class="text-xs font-semibold text-gray-400 hover:text-gray-600" @click="limpiarFiltros">Limpiar</button>
+                <SecondaryButton @click="aplicarFiltros"><Filter :size="14" /> Filtrar</SecondaryButton>
+                <button class="inline-flex items-center gap-1 text-xs font-semibold text-ink-400 transition hover:text-ink-600" @click="limpiarFiltros">
+                    <X :size="13" /> Limpiar
+                </button>
             </div>
         </Card>
 
-        <div class="mb-3 flex gap-1 border-b border-gray-200">
+        <div class="mb-3 flex gap-1 border-b border-ink-200">
             <button
                 class="border-b-2 px-4 py-2 text-sm font-semibold transition"
-                :class="tab === 'movimientos' ? 'border-brand-600 text-brand-700' : 'border-transparent text-gray-400 hover:text-gray-600'"
+                :class="tab === 'movimientos' ? 'border-brand-600 text-brand-700' : 'border-transparent text-ink-400 hover:text-ink-600'"
                 @click="tab = 'movimientos'"
             >
                 Movimientos
             </button>
             <button
                 class="border-b-2 px-4 py-2 text-sm font-semibold transition"
-                :class="tab === 'transferencias' ? 'border-brand-600 text-brand-700' : 'border-transparent text-gray-400 hover:text-gray-600'"
+                :class="tab === 'transferencias' ? 'border-brand-600 text-brand-700' : 'border-transparent text-ink-400 hover:text-ink-600'"
                 @click="tab = 'transferencias'"
             >
                 Transferencias
@@ -188,7 +191,7 @@ function eliminarTransferencia() {
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        <tr class="border-b border-ink-100 text-left text-xs font-semibold uppercase tracking-wide text-ink-400">
                             <th class="px-5 py-3">Fecha</th>
                             <th class="px-5 py-3">Tipo</th>
                             <th class="px-5 py-3">Cuenta</th>
@@ -200,31 +203,32 @@ function eliminarTransferencia() {
                     </thead>
                     <tbody>
                         <tr v-if="movimientos.length === 0">
-                            <td colspan="7" class="px-5 py-10 text-center text-gray-400">No hay movimientos con estos filtros.</td>
+                            <td colspan="7" class="px-5 py-10 text-center text-ink-400">No hay movimientos con estos filtros.</td>
                         </tr>
-                        <tr v-for="m in movimientos" :key="m.id" class="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
-                            <td class="px-5 py-3 text-gray-500">{{ formatFecha(m.fecha) }}</td>
+                        <tr v-for="m in movimientos" :key="m.id" class="border-b border-ink-50 last:border-0 hover:bg-ink-50/60">
+                            <td class="px-5 py-3 text-ink-500">{{ formatFecha(m.fecha) }}</td>
                             <td class="px-5 py-3">
                                 <Badge :color="m.tipo === 'ingreso' ? '#16a34a' : '#e11d48'">{{ m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto' }}</Badge>
                             </td>
                             <td class="px-5 py-3 text-ink-800">{{ m.cuenta.nombre }}</td>
                             <td class="px-5 py-3">
                                 <Badge v-if="m.categoria" :color="m.categoria.color">{{ m.categoria.nombre }}</Badge>
-                                <span v-else class="text-gray-300">-</span>
+                                <span v-else class="text-ink-300">-</span>
                             </td>
-                            <td class="px-5 py-3 text-gray-500">{{ m.descripcion || '-' }}</td>
+                            <td class="px-5 py-3 text-ink-500">{{ m.descripcion || '-' }}</td>
                             <td class="px-5 py-3 text-right font-semibold" :class="m.tipo === 'ingreso' ? 'text-brand-700' : 'text-rose-600'">
                                 {{ m.tipo === 'ingreso' ? '+' : '-' }} {{ formatCurrency(m.monto) }}
                             </td>
                             <td class="px-5 py-3 text-right">
-                                <div class="flex justify-end gap-2 whitespace-nowrap">
-                                    <button class="text-xs font-semibold text-gray-500 hover:text-ink-900" @click="abrirEditar(m)">Editar</button>
+                                <div class="flex justify-end gap-3 whitespace-nowrap">
+                                    <button class="text-ink-400 transition hover:text-brand-600" title="Editar" @click="abrirEditar(m)"><Pencil :size="15" /></button>
                                     <button
                                         v-if="m.origen === 'manual'"
-                                        class="text-xs font-semibold text-rose-500 hover:text-rose-700"
+                                        class="text-ink-400 transition hover:text-rose-600"
+                                        title="Eliminar"
                                         @click="confirmandoMov = m"
                                     >
-                                        Eliminar
+                                        <Trash2 :size="15" />
                                     </button>
                                 </div>
                             </td>
@@ -238,7 +242,7 @@ function eliminarTransferencia() {
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        <tr class="border-b border-ink-100 text-left text-xs font-semibold uppercase tracking-wide text-ink-400">
                             <th class="px-5 py-3">Fecha</th>
                             <th class="px-5 py-3">De</th>
                             <th class="px-5 py-3">A</th>
@@ -249,16 +253,16 @@ function eliminarTransferencia() {
                     </thead>
                     <tbody>
                         <tr v-if="transferencias.length === 0">
-                            <td colspan="6" class="px-5 py-10 text-center text-gray-400">Aún no has hecho transferencias entre cuentas.</td>
+                            <td colspan="6" class="px-5 py-10 text-center text-ink-400">Aún no has hecho transferencias entre cuentas.</td>
                         </tr>
-                        <tr v-for="t in transferencias" :key="t.id" class="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
-                            <td class="px-5 py-3 text-gray-500">{{ formatFecha(t.fecha) }}</td>
+                        <tr v-for="t in transferencias" :key="t.id" class="border-b border-ink-50 last:border-0 hover:bg-ink-50/60">
+                            <td class="px-5 py-3 text-ink-500">{{ formatFecha(t.fecha) }}</td>
                             <td class="px-5 py-3 text-ink-800">{{ t.cuenta_origen.nombre }}</td>
                             <td class="px-5 py-3 text-ink-800">{{ t.cuenta_destino.nombre }}</td>
-                            <td class="px-5 py-3 text-gray-500">{{ t.descripcion || '-' }}</td>
+                            <td class="px-5 py-3 text-ink-500">{{ t.descripcion || '-' }}</td>
                             <td class="px-5 py-3 text-right font-semibold text-ink-900">{{ formatCurrency(t.monto) }}</td>
                             <td class="px-5 py-3 text-right">
-                                <button class="text-xs font-semibold text-rose-500 hover:text-rose-700" @click="confirmandoTrans = t">Eliminar</button>
+                                <button class="text-ink-400 transition hover:text-rose-600" title="Eliminar" @click="confirmandoTrans = t"><Trash2 :size="15" /></button>
                             </td>
                         </tr>
                     </tbody>

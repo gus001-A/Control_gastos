@@ -16,11 +16,11 @@ const data = computed(() => ({
     datasets: [
         {
             data: props.values,
-            borderColor: '#0ea5e9',
-            backgroundColor: 'rgba(14, 165, 233, 0.08)',
+            borderColor: '#9333ea',
+            backgroundColor: 'rgba(147, 51, 234, 0.08)',
             fill: true,
             tension: 0.35,
-            pointBackgroundColor: '#0ea5e9',
+            pointBackgroundColor: '#9333ea',
             pointRadius: 4,
         },
     ],

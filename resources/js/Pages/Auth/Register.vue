@@ -4,6 +4,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import PasswordInput from '@/Components/PasswordInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
@@ -41,13 +42,13 @@ const submit = () => {
 
             <div class="mt-4">
                 <InputLabel for="password" value="Contraseña" />
-                <TextInput id="password" type="password" class="mt-1" v-model="form.password" required autocomplete="new-password" />
+                <PasswordInput id="password" class="mt-1" v-model="form.password" required autocomplete="new-password" />
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
             <div class="mt-4">
                 <InputLabel for="password_confirmation" value="Confirmar contraseña" />
-                <TextInput id="password_confirmation" type="password" class="mt-1" v-model="form.password_confirmation" required autocomplete="new-password" />
+                <PasswordInput id="password_confirmation" class="mt-1" v-model="form.password_confirmation" required autocomplete="new-password" />
                 <InputError class="mt-2" :message="form.errors.password_confirmation" />
             </div>
 

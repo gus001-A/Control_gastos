@@ -12,6 +12,7 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
+import { Plus, Pencil, Trash2, Eye } from '@lucide/vue';
 
 const props = defineProps({
     deudas: Array,
@@ -78,41 +79,41 @@ function eliminar() {
 
     <AuthenticatedLayout title="Deudas" subtitle="Lo que debes y cuánto llevas pagado">
         <div class="mb-5 flex justify-end">
-            <PrimaryButton @click="abrirCrear">+ Nueva deuda</PrimaryButton>
+            <PrimaryButton @click="abrirCrear"><Plus :size="16" /> Nueva deuda</PrimaryButton>
         </div>
 
-        <div v-if="deudas.length === 0" class="rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center text-gray-400">
+        <div v-if="deudas.length === 0" class="rounded-2xl border border-dashed border-ink-300 bg-white py-16 text-center text-ink-400">
             No tienes deudas registradas. ¡Que se mantenga así, o agrega una para llevar el control!
         </div>
 
         <div v-else class="space-y-4">
-            <div v-for="deuda in deudas" :key="deuda.id" class="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm shadow-gray-200/50">
+            <div v-for="deuda in deudas" :key="deuda.id" class="animate-fade-in rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition-shadow duration-200 hover:shadow-glow">
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <div class="font-bold text-ink-900">{{ deuda.nombre }}</div>
-                        <div v-if="deuda.acreedor" class="text-xs text-gray-400">{{ deuda.acreedor }}</div>
+                        <div v-if="deuda.acreedor" class="text-xs text-ink-400">{{ deuda.acreedor }}</div>
                     </div>
                     <span class="text-xs font-bold" :class="deuda.estado === 'pagada' ? 'text-brand-600' : 'text-rose-600'">
-                        {{ deuda.estado === 'pagada' ? 'Pagada ✅' : 'Activa' }}
+                        {{ deuda.estado === 'pagada' ? 'Pagada' : 'Activa' }}
                     </span>
                 </div>
 
                 <ProgressBar :value="deuda.progreso" class="mt-3" :color="deuda.estado === 'pagada' ? '#16a34a' : '#0ea5e9'" />
 
-                <div class="mt-2 flex flex-wrap justify-between gap-2 text-xs text-gray-500">
+                <div class="mt-2 flex flex-wrap justify-between gap-2 text-xs text-ink-500">
                     <span>Pagado {{ formatCurrency(deuda.pagado) }} de {{ formatCurrency(deuda.monto_total) }} · Restan {{ formatCurrency(deuda.restante) }}</span>
                     <span v-if="deuda.fecha_limite">Fecha límite: {{ formatFecha(deuda.fecha_limite) }}</span>
                 </div>
 
                 <div class="mt-4 flex gap-2">
-                    <Link :href="route('deudas.show', deuda.id)" class="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">
-                        Ver / abonar
+                    <Link :href="route('deudas.show', deuda.id)" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:-translate-y-px hover:bg-brand-700 hover:shadow-glow">
+                        <Eye :size="13" /> Ver / abonar
                     </Link>
-                    <button class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-ink-800 hover:bg-gray-50" @click="abrirEditar(deuda)">
-                        Editar
+                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(deuda)">
+                        <Pencil :size="13" /> Editar
                     </button>
-                    <button class="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50" @click="confirmando = deuda">
-                        Eliminar
+                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="confirmando = deuda">
+                        <Trash2 :size="13" /> Eliminar
                     </button>
                 </div>
             </div>
@@ -151,8 +152,8 @@ function eliminar() {
                         <div>
                             <InputLabel value="Fecha límite" />
                             <TextInput v-model="form.fecha_limite" type="date" class="mt-1" :disabled="sinLimite" />
-                            <label class="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-                                <input type="checkbox" v-model="sinLimite" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+                            <label class="mt-1 flex items-center gap-1.5 text-xs text-ink-500">
+                                <input type="checkbox" v-model="sinLimite" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500" />
                                 Sin fecha límite
                             </label>
                         </div>
