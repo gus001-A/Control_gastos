@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import { CheckCircle2, AlertTriangle } from '@lucide/vue';
 
 const page = usePage();
 const visible = ref(false);
@@ -36,8 +37,8 @@ watch(
             class="fixed bottom-5 right-5 z-[60] flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium shadow-lg"
             :class="esError ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-brand-200 bg-white text-ink-800'"
         >
-            <span v-if="!esError" class="text-brand-600">✓</span>
-            <span v-else>⚠️</span>
+            <CheckCircle2 v-if="!esError" :size="17" class="text-brand-600" />
+            <AlertTriangle v-else :size="17" class="text-rose-600" />
             {{ mensaje }}
         </div>
     </Transition>

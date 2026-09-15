@@ -73,6 +73,11 @@ class User extends Authenticatable
         return $this->hasMany(Proyecto::class);
     }
 
+    public function cargosRecurrentes(): HasMany
+    {
+        return $this->hasMany(CargoRecurrente::class);
+    }
+
     public function seedCategoriasPorDefecto(): void
     {
         foreach (Categoria::DEFAULT as $categoria) {

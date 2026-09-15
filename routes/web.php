@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AbonoDeudaController;
+use App\Http\Controllers\CargoRecurrenteController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\CuentaController;
 use App\Http\Controllers\DashboardController;
@@ -54,6 +55,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/pagos/{pago}', [PagoProyectoController::class, 'destroy'])->name('pagos.destroy');
 
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
+
+    Route::get('/recurrentes', [CargoRecurrenteController::class, 'index'])->name('recurrentes.index');
+    Route::post('/recurrentes', [CargoRecurrenteController::class, 'store'])->name('recurrentes.store');
+    Route::put('/recurrentes/{recurrente}', [CargoRecurrenteController::class, 'update'])->name('recurrentes.update');
+    Route::delete('/recurrentes/{recurrente}', [CargoRecurrenteController::class, 'destroy'])->name('recurrentes.destroy');
+    Route::post('/recurrentes/{recurrente}/pagar', [CargoRecurrenteController::class, 'pagar'])->name('recurrentes.pagar');
 });
 
 Route::middleware('auth')->group(function () {

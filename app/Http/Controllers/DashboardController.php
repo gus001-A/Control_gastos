@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CargoRecurrente;
 use App\Models\Categoria;
 use App\Models\Deuda;
 use App\Models\Movimiento;
@@ -49,6 +50,14 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        $proximosCargos = CargoRecurrente::where('user_id', $userId)
+            ->where('activo', true)
+            ->where('proxima_fecha', '<=', $hoy->copy()->addDays(7)->toDateString())
+            ->with(['cuenta:id,nombre'])
+            ->orderBy('proxima_fecha')
+            ->limit(6)
+            ->get();
+
         return Inertia::render('Dashboard', [
             'resumen' => [
                 'saldoTotal' => $saldoTotal,
@@ -62,6 +71,7 @@ class DashboardController extends Controller
             'cuentas' => $cuentas,
             'gastosPorCategoria' => $gastosPorCategoria,
             'ultimosMovimientos' => $ultimosMovimientos,
+            'proximosCargos' => $proximosCargos,
             'mesActual' => Fechas::nombreMes((int) $hoy->format('n')).' '.$hoy->format('Y'),
         ]);
     }

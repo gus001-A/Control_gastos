@@ -13,6 +13,7 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
+import { Plus, Trash2, ArrowLeft } from '@lucide/vue';
 
 const props = defineProps({
     proyecto: Object,
@@ -52,26 +53,26 @@ function eliminarPago() {
     <Head :title="proyecto.nombre" />
 
     <AuthenticatedLayout>
-        <Link :href="route('proyectos.index')" class="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-ink-900">
-            ← Volver a proyectos
+        <Link :href="route('proyectos.index')" class="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-500 transition hover:text-ink-900">
+            <ArrowLeft :size="15" /> Volver a proyectos
         </Link>
 
         <Card>
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h1 class="text-xl font-extrabold text-ink-900">{{ proyecto.nombre }}</h1>
-                    <p class="mt-1 text-sm text-gray-500">
+                    <p class="mt-1 text-sm text-ink-500">
                         <span v-if="proyecto.cliente">Cliente: {{ proyecto.cliente }} · </span>
                         <span v-if="proyecto.fecha_entrega">Entrega: {{ formatFecha(proyecto.fecha_entrega) }} · </span>
                         Estado: {{ estados[proyecto.estado] }}
                     </p>
-                    <p v-if="proyecto.descripcion" class="mt-2 max-w-2xl text-sm text-gray-600">{{ proyecto.descripcion }}</p>
+                    <p v-if="proyecto.descripcion" class="mt-2 max-w-2xl text-sm text-ink-600">{{ proyecto.descripcion }}</p>
                 </div>
-                <PrimaryButton @click="abrirPago">+ Registrar pago recibido</PrimaryButton>
+                <PrimaryButton @click="abrirPago"><Plus :size="16" /> Registrar pago recibido</PrimaryButton>
             </div>
 
             <ProgressBar :value="proyecto.progreso" class="mt-5" color="#0ea5e9" />
-            <div class="mt-2 text-sm text-gray-600">
+            <div class="mt-2 text-sm text-ink-600">
                 Cobrado: <strong>{{ formatCurrency(proyecto.monto_cobrado) }}</strong> ·
                 Pagado: <strong class="text-brand-700">{{ formatCurrency(proyecto.pagado) }}</strong> ·
                 Pendiente: <strong class="text-amber-600">{{ formatCurrency(proyecto.pendiente) }}</strong>
@@ -82,7 +83,7 @@ function eliminarPago() {
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        <tr class="border-b border-ink-100 text-left text-xs font-semibold uppercase tracking-wide text-ink-400">
                             <th class="px-5 py-3">Fecha</th>
                             <th class="px-5 py-3">Cuenta</th>
                             <th class="px-5 py-3">Notas</th>
@@ -92,15 +93,15 @@ function eliminarPago() {
                     </thead>
                     <tbody>
                         <tr v-if="pagos.length === 0">
-                            <td colspan="5" class="px-5 py-10 text-center text-gray-400">Aún no has registrado pagos.</td>
+                            <td colspan="5" class="px-5 py-10 text-center text-ink-400">Aún no has registrado pagos.</td>
                         </tr>
-                        <tr v-for="p in pagos" :key="p.id" class="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
-                            <td class="px-5 py-3 text-gray-500">{{ formatFecha(p.fecha) }}</td>
+                        <tr v-for="p in pagos" :key="p.id" class="border-b border-ink-50 last:border-0 hover:bg-ink-50/60">
+                            <td class="px-5 py-3 text-ink-500">{{ formatFecha(p.fecha) }}</td>
                             <td class="px-5 py-3 text-ink-800">{{ p.cuenta ? p.cuenta.nombre : '-' }}</td>
-                            <td class="px-5 py-3 text-gray-500">{{ p.notas || '-' }}</td>
+                            <td class="px-5 py-3 text-ink-500">{{ p.notas || '-' }}</td>
                             <td class="px-5 py-3 text-right font-semibold text-brand-700">{{ formatCurrency(p.monto) }}</td>
                             <td class="px-5 py-3 text-right">
-                                <button class="text-xs font-semibold text-rose-500 hover:text-rose-700" @click="confirmando = p">Eliminar</button>
+                                <button class="text-ink-400 transition hover:text-rose-600" title="Eliminar" @click="confirmando = p"><Trash2 :size="15" /></button>
                             </td>
                         </tr>
                     </tbody>

@@ -13,6 +13,7 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
+import { Plus, Pencil, Trash2, Eye } from '@lucide/vue';
 
 const props = defineProps({
     proyectos: Array,
@@ -85,39 +86,39 @@ function eliminar() {
 
     <AuthenticatedLayout title="Proyectos" subtitle="Tus trabajos freelance: qué cobras y qué te han pagado">
         <div class="mb-5 flex justify-end">
-            <PrimaryButton @click="abrirCrear">+ Nuevo proyecto</PrimaryButton>
+            <PrimaryButton @click="abrirCrear"><Plus :size="16" /> Nuevo proyecto</PrimaryButton>
         </div>
 
-        <div v-if="proyectos.length === 0" class="rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center text-gray-400">
+        <div v-if="proyectos.length === 0" class="rounded-2xl border border-dashed border-ink-300 bg-white py-16 text-center text-ink-400">
             Aún no tienes proyectos freelance registrados. Agrega el primero con el botón de arriba.
         </div>
 
         <div v-else class="space-y-4">
-            <div v-for="proyecto in proyectos" :key="proyecto.id" class="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm shadow-gray-200/50">
+            <div v-for="proyecto in proyectos" :key="proyecto.id" class="animate-fade-in rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition-shadow duration-200 hover:shadow-glow">
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <div class="font-bold text-ink-900">{{ proyecto.nombre }}</div>
-                        <div v-if="proyecto.cliente" class="text-xs text-gray-400">{{ proyecto.cliente }}</div>
+                        <div v-if="proyecto.cliente" class="text-xs text-ink-400">{{ proyecto.cliente }}</div>
                     </div>
                     <span class="text-xs font-bold" :style="{ color: ESTADO_COLOR[proyecto.estado] }">{{ estados[proyecto.estado] }}</span>
                 </div>
 
                 <ProgressBar :value="proyecto.progreso" class="mt-3" :color="ESTADO_COLOR[proyecto.estado]" />
 
-                <div class="mt-2 flex flex-wrap justify-between gap-2 text-xs text-gray-500">
+                <div class="mt-2 flex flex-wrap justify-between gap-2 text-xs text-ink-500">
                     <span>Pagado {{ formatCurrency(proyecto.pagado) }} de {{ formatCurrency(proyecto.monto_cobrado) }} · Pendiente {{ formatCurrency(proyecto.pendiente) }}</span>
                     <span v-if="proyecto.fecha_entrega">Entrega: {{ formatFecha(proyecto.fecha_entrega) }}</span>
                 </div>
 
                 <div class="mt-4 flex gap-2">
-                    <Link :href="route('proyectos.show', proyecto.id)" class="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">
-                        Ver / registrar pago
+                    <Link :href="route('proyectos.show', proyecto.id)" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:-translate-y-px hover:bg-brand-700 hover:shadow-glow">
+                        <Eye :size="13" /> Ver / registrar pago
                     </Link>
-                    <button class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-ink-800 hover:bg-gray-50" @click="abrirEditar(proyecto)">
-                        Editar
+                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(proyecto)">
+                        <Pencil :size="13" /> Editar
                     </button>
-                    <button class="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50" @click="confirmando = proyecto">
-                        Eliminar
+                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="confirmando = proyecto">
+                        <Trash2 :size="13" /> Eliminar
                     </button>
                 </div>
             </div>
@@ -162,8 +163,8 @@ function eliminar() {
                         <div>
                             <InputLabel value="Fecha de entrega" />
                             <TextInput v-model="form.fecha_entrega" type="date" class="mt-1" :disabled="sinFecha" />
-                            <label class="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-                                <input type="checkbox" v-model="sinFecha" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+                            <label class="mt-1 flex items-center gap-1.5 text-xs text-ink-500">
+                                <input type="checkbox" v-model="sinFecha" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500" />
                                 Sin fecha definida
                             </label>
                         </div>
