@@ -13,7 +13,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
 import { confirmar } from '@/lib/alertas';
-import { Plus, Pencil, Trash2, Eye, CreditCard, CalendarClock, CheckCircle2 } from '@lucide/vue';
+import { Plus, Pencil, Trash2, Eye, CreditCard, CalendarClock, CheckCircle2, Landmark, Coins, CalendarDays, StickyNote } from '@lucide/vue';
 
 const props = defineProps({
     deudas: Array,
@@ -87,12 +87,12 @@ function eliminar(deuda) {
             No tienes deudas registradas. ¡Que se mantenga así, o agrega una para llevar el control!
         </div>
 
-        <div v-else class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div v-else class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <div
                 v-for="(deuda, i) in deudas"
                 :key="deuda.id"
                 class="group relative animate-fade-in overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow"
-                :style="{ animationDelay: `${i * 50}ms` }"
+                :style="{ animationDelay: `${i * 40}ms` }"
             >
                 <div class="h-1.5 w-full" :class="deuda.estado === 'pagada' ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-rose-400 to-rose-600'" />
 
@@ -107,7 +107,7 @@ function eliminar(deuda) {
                             </div>
                             <div>
                                 <div class="font-bold leading-tight text-ink-900">{{ deuda.nombre }}</div>
-                                <div v-if="deuda.acreedor" class="text-xs text-ink-400">{{ deuda.acreedor }}</div>
+                                <div v-if="deuda.acreedor" class="inline-flex items-center gap-1 text-xs text-ink-400"><Landmark :size="11" /> {{ deuda.acreedor }}</div>
                             </div>
                         </div>
                         <span
@@ -162,21 +162,21 @@ function eliminar(deuda) {
                         <InputError :message="form.errors.nombre" />
                     </div>
                     <div>
-                        <InputLabel value="Acreedor (opcional)" />
+                        <InputLabel value="Acreedor (opcional)" :icon="Landmark" />
                         <TextInput v-model="form.acreedor" class="mt-1" placeholder="¿A quién le debes?" />
                     </div>
                     <div>
-                        <InputLabel value="Monto total" />
+                        <InputLabel value="Monto total" :icon="Coins" />
                         <CurrencyInput v-model="form.monto_total" class="mt-1" />
                         <InputError :message="form.errors.monto_total" />
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <InputLabel value="Fecha de inicio" />
+                            <InputLabel value="Fecha de inicio" :icon="CalendarDays" />
                             <TextInput v-model="form.fecha_inicio" type="date" class="mt-1" />
                         </div>
                         <div>
-                            <InputLabel value="Fecha límite" />
+                            <InputLabel value="Fecha límite" :icon="CalendarClock" />
                             <TextInput v-model="form.fecha_limite" type="date" class="mt-1" :disabled="sinLimite" />
                             <label class="mt-1 flex items-center gap-1.5 text-xs text-ink-500">
                                 <input type="checkbox" v-model="sinLimite" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500" />
@@ -185,7 +185,7 @@ function eliminar(deuda) {
                         </div>
                     </div>
                     <div>
-                        <InputLabel value="Notas (opcional)" />
+                        <InputLabel value="Notas (opcional)" :icon="StickyNote" />
                         <Textarea v-model="form.notas" class="mt-1" :rows="2" />
                     </div>
                 </div>

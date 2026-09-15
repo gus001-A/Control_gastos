@@ -34,9 +34,6 @@ class MovimientoController extends Controller
         if ($request->filled('tipo')) {
             $query->where('tipo', $request->string('tipo'));
         }
-        if ($request->filled('texto')) {
-            $query->where('descripcion', 'like', '%'.$request->string('texto').'%');
-        }
         if ($request->filled('fecha_inicio')) {
             $query->where('fecha', '>=', $request->string('fecha_inicio'));
         }
@@ -49,21 +46,21 @@ class MovimientoController extends Controller
             ->selectRaw("COALESCE(SUM(CASE WHEN tipo = 'gasto' THEN monto ELSE 0 END), 0) as gastos")
             ->first();
 
-        $movimientos = $query->orderByDesc('fecha')->orderByDesc('id')->limit(500)->get();
+        $movimientos = $query->orderByDesc('fecha')->orderByDesc('id')->paginate(10)->withQueryString();
 
         $transferenciasList = \App\Models\Transferencia::where('user_id', $userId)
             ->with(['cuentaOrigen:id,nombre', 'cuentaDestino:id,nombre'])
             ->orderByDesc('fecha')
             ->orderByDesc('id')
-            ->limit(200)
-            ->get();
+            ->paginate(10, ['*'], 'transferencias_page')
+            ->withQueryString();
 
         return Inertia::render('Movimientos/Index', [
             'movimientos' => $movimientos,
             'transferencias' => $transferenciasList,
             'cuentas' => Auth::user()->cuentas()->conSaldo()->orderBy('nombre')->get(['id', 'nombre', 'activa', 'color']),
             'categorias' => Auth::user()->categorias()->orderBy('tipo')->orderBy('nombre')->get(),
-            'filtros' => $request->only(['cuenta_id', 'categoria_id', 'tipo', 'texto', 'fecha_inicio', 'fecha_fin']),
+            'filtros' => $request->only(['cuenta_id', 'categoria_id', 'tipo', 'fecha_inicio', 'fecha_fin']),
             'totales' => [
                 'ingresos' => round((float) $totales->ingresos, 2),
                 'gastos' => round((float) $totales->gastos, 2),

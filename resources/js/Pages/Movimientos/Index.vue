@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
+import Pagination from '@/Components/Pagination.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import SelectInput from '@/Components/SelectInput.vue';
@@ -14,7 +15,25 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
 import { confirmar, advertencia } from '@/lib/alertas';
-import { Plus, ArrowLeftRight, Pencil, Trash2, Filter, X, ArrowUpCircle, ArrowDownCircle, Scale } from '@lucide/vue';
+import {
+    Plus,
+    ArrowLeftRight,
+    Pencil,
+    Trash2,
+    Filter,
+    X,
+    ArrowUpCircle,
+    ArrowDownCircle,
+    Scale,
+    Wallet,
+    Tags,
+    Tag,
+    CalendarDays,
+    ListFilter,
+    FileText,
+    Coins,
+    Receipt,
+} from '@lucide/vue';
 
 const ORIGENES_BLOQUEADOS = ['abono_deuda', 'pago_proyecto'];
 
@@ -34,7 +53,6 @@ const filtros = ref({
     cuenta_id: props.filtros.cuenta_id || '',
     categoria_id: props.filtros.categoria_id || '',
     tipo: props.filtros.tipo || '',
-    texto: props.filtros.texto || '',
     fecha_inicio: props.filtros.fecha_inicio || '',
     fecha_fin: props.filtros.fecha_fin || '',
 });
@@ -43,7 +61,7 @@ function aplicarFiltros() {
     router.get(route('movimientos.index'), filtros.value, { preserveState: true, replace: true });
 }
 function limpiarFiltros() {
-    filtros.value = { cuenta_id: '', categoria_id: '', tipo: '', texto: '', fecha_inicio: '', fecha_fin: '' };
+    filtros.value = { cuenta_id: '', categoria_id: '', tipo: '', fecha_inicio: '', fecha_fin: '' };
     aplicarFiltros();
 }
 
@@ -147,17 +165,17 @@ function eliminarTransferencia(t) {
             <PrimaryButton @click="abrirCrear"><Plus :size="16" /> Nuevo movimiento</PrimaryButton>
         </div>
 
-        <Card class="mb-5">
+        <Card class="mb-5 animate-fade-in">
             <div class="flex flex-wrap items-end gap-3">
                 <div class="w-40">
-                    <InputLabel value="Cuenta" />
+                    <InputLabel value="Cuenta" :icon="Wallet" />
                     <SelectInput v-model="filtros.cuenta_id" class="mt-1">
                         <option value="">Todas</option>
                         <option v-for="c in cuentas" :key="c.id" :value="c.id">{{ c.nombre }}</option>
                     </SelectInput>
                 </div>
                 <div class="w-36">
-                    <InputLabel value="Tipo" />
+                    <InputLabel value="Tipo" :icon="ListFilter" />
                     <SelectInput v-model="filtros.tipo" class="mt-1">
                         <option value="">Todos</option>
                         <option value="ingreso">Ingresos</option>
@@ -165,51 +183,47 @@ function eliminarTransferencia(t) {
                     </SelectInput>
                 </div>
                 <div class="w-48">
-                    <InputLabel value="Categoría" />
+                    <InputLabel value="Categoría" :icon="Tags" />
                     <SelectInput v-model="filtros.categoria_id" class="mt-1">
                         <option value="">Todas</option>
                         <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
                     </SelectInput>
                 </div>
                 <div class="w-36">
-                    <InputLabel value="Desde" />
+                    <InputLabel value="Desde" :icon="CalendarDays" />
                     <TextInput v-model="filtros.fecha_inicio" type="date" class="mt-1" />
                 </div>
                 <div class="w-36">
-                    <InputLabel value="Hasta" />
+                    <InputLabel value="Hasta" :icon="CalendarDays" />
                     <TextInput v-model="filtros.fecha_fin" type="date" class="mt-1" />
                 </div>
-                <div class="min-w-[180px] flex-1">
-                    <InputLabel value="Buscar" />
-                    <TextInput v-model="filtros.texto" class="mt-1" placeholder="Buscar en descripción..." @keyup.enter="aplicarFiltros" />
-                </div>
-                <SecondaryButton @click="aplicarFiltros"><Filter :size="14" /> Filtrar</SecondaryButton>
-                <button class="inline-flex items-center gap-1 text-xs font-semibold text-ink-400 transition hover:text-ink-600" @click="limpiarFiltros">
+                <PrimaryButton @click="aplicarFiltros"><Filter :size="14" /> Filtrar</PrimaryButton>
+                <button class="inline-flex items-center gap-1 text-xs font-semibold text-ink-400 transition hover:text-rose-600" @click="limpiarFiltros">
                     <X :size="13" /> Limpiar
                 </button>
             </div>
         </Card>
 
         <div class="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div class="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 shadow-card">
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50 text-green-600"><ArrowUpCircle :size="17" /></div>
+            <div class="group flex animate-fade-in items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-600 transition-transform duration-200 group-hover:scale-110"><ArrowUpCircle :size="17" /></div>
                 <div>
                     <div class="text-xs font-semibold uppercase tracking-wide text-ink-400">Ingresos</div>
                     <div class="text-lg font-extrabold text-green-600">{{ formatCurrency(totales.ingresos) }}</div>
                 </div>
             </div>
-            <div class="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 shadow-card">
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600"><ArrowDownCircle :size="17" /></div>
+            <div class="group flex animate-fade-in items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow" style="animation-delay: 60ms">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition-transform duration-200 group-hover:scale-110"><ArrowDownCircle :size="17" /></div>
                 <div>
                     <div class="text-xs font-semibold uppercase tracking-wide text-ink-400">Gastos</div>
                     <div class="text-lg font-extrabold text-rose-600">{{ formatCurrency(totales.gastos) }}</div>
                 </div>
             </div>
-            <div class="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 shadow-card">
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><Scale :size="17" /></div>
+            <div class="group flex animate-fade-in items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow" style="animation-delay: 120ms">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-transform duration-200 group-hover:scale-110"><Scale :size="17" /></div>
                 <div>
                     <div class="text-xs font-semibold uppercase tracking-wide text-ink-400">Balance</div>
-                    <div class="text-lg font-extrabold" :class="totales.ingresos - totales.gastos < 0 ? 'text-rose-600' : 'text-ink-900'">
+                    <div class="text-lg font-extrabold" :class="totales.ingresos - totales.gastos < 0 ? 'text-rose-600' : 'text-brand-700'">
                         {{ formatCurrency(totales.ingresos - totales.gastos) }}
                     </div>
                 </div>
@@ -218,18 +232,18 @@ function eliminarTransferencia(t) {
 
         <div class="mb-3 flex gap-1 border-b border-ink-200">
             <button
-                class="border-b-2 px-4 py-2 text-sm font-semibold transition"
+                class="inline-flex items-center gap-1.5 border-b-2 px-4 py-2 text-sm font-semibold transition"
                 :class="tab === 'movimientos' ? 'border-brand-600 text-brand-700' : 'border-transparent text-ink-400 hover:text-ink-600'"
                 @click="tab = 'movimientos'"
             >
-                Movimientos
+                <Receipt :size="14" /> Movimientos
             </button>
             <button
-                class="border-b-2 px-4 py-2 text-sm font-semibold transition"
+                class="inline-flex items-center gap-1.5 border-b-2 px-4 py-2 text-sm font-semibold transition"
                 :class="tab === 'transferencias' ? 'border-brand-600 text-brand-700' : 'border-transparent text-ink-400 hover:text-ink-600'"
                 @click="tab = 'transferencias'"
             >
-                Transferencias
+                <ArrowLeftRight :size="14" /> Transferencias
             </button>
         </div>
 
@@ -238,27 +252,40 @@ function eliminarTransferencia(t) {
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-ink-100 text-left text-xs font-semibold uppercase tracking-wide text-ink-400">
-                            <th class="px-5 py-3">Fecha</th>
-                            <th class="px-5 py-3">Tipo</th>
-                            <th class="px-5 py-3">Cuenta</th>
-                            <th class="px-5 py-3">Categoría</th>
-                            <th class="px-5 py-3">Descripción</th>
-                            <th class="px-5 py-3 text-right">Monto</th>
+                            <th class="px-5 py-3"><span class="inline-flex items-center gap-1.5"><CalendarDays :size="12" /> Fecha</span></th>
+                            <th class="px-5 py-3"><span class="inline-flex items-center gap-1.5"><ListFilter :size="12" /> Tipo</span></th>
+                            <th class="px-5 py-3"><span class="inline-flex items-center gap-1.5"><Wallet :size="12" /> Cuenta</span></th>
+                            <th class="px-5 py-3"><span class="inline-flex items-center gap-1.5"><Tag :size="12" /> Categoría</span></th>
+                            <th class="px-5 py-3"><span class="inline-flex items-center gap-1.5"><FileText :size="12" /> Descripción</span></th>
+                            <th class="px-5 py-3 text-right"><span class="inline-flex items-center gap-1.5"><Coins :size="12" /> Monto</span></th>
                             <th class="px-5 py-3"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-if="movimientos.length === 0">
+                        <tr v-if="movimientos.data.length === 0">
                             <td colspan="7" class="px-5 py-10 text-center text-ink-400">No hay movimientos con estos filtros.</td>
                         </tr>
-                        <tr v-for="m in movimientos" :key="m.id" class="border-b border-ink-50 last:border-0 hover:bg-ink-50/60">
+                        <tr
+                            v-for="(m, i) in movimientos.data"
+                            :key="m.id"
+                            class="animate-fade-in border-b border-ink-50 transition-colors last:border-0 hover:bg-ink-50/60"
+                            :style="{ animationDelay: `${i * 25}ms` }"
+                        >
                             <td class="px-5 py-3 text-ink-500">{{ formatFecha(m.fecha) }}</td>
                             <td class="px-5 py-3">
-                                <Badge :color="m.tipo === 'ingreso' ? '#16a34a' : '#e11d48'">{{ m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto' }}</Badge>
+                                <Badge :color="m.tipo === 'ingreso' ? '#16a34a' : '#e11d48'">
+                                    <component :is="m.tipo === 'ingreso' ? ArrowUpCircle : ArrowDownCircle" :size="11" class="mr-1" />
+                                    {{ m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto' }}
+                                </Badge>
                             </td>
-                            <td class="px-5 py-3 text-ink-800">{{ m.cuenta.nombre }}</td>
+                            <td class="px-5 py-3 text-ink-800">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <span class="h-2 w-2 rounded-full" :style="{ backgroundColor: m.cuenta.color }" />
+                                    {{ m.cuenta.nombre }}
+                                </span>
+                            </td>
                             <td class="px-5 py-3">
-                                <Badge v-if="m.categoria" :color="m.categoria.color">{{ m.categoria.nombre }}</Badge>
+                                <Badge v-if="m.categoria" :color="m.categoria.color"><Tag :size="10" class="mr-1" />{{ m.categoria.nombre }}</Badge>
                                 <span v-else class="text-ink-300">-</span>
                             </td>
                             <td class="px-5 py-3 text-ink-500">{{ m.descripcion || '-' }}</td>
@@ -282,6 +309,7 @@ function eliminarTransferencia(t) {
                     </tbody>
                 </table>
             </div>
+            <Pagination :paginator="movimientos" />
         </Card>
 
         <Card v-else :padded="false">
@@ -289,24 +317,31 @@ function eliminarTransferencia(t) {
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-ink-100 text-left text-xs font-semibold uppercase tracking-wide text-ink-400">
-                            <th class="px-5 py-3">Fecha</th>
+                            <th class="px-5 py-3"><span class="inline-flex items-center gap-1.5"><CalendarDays :size="12" /> Fecha</span></th>
                             <th class="px-5 py-3">De</th>
                             <th class="px-5 py-3">A</th>
-                            <th class="px-5 py-3">Descripción</th>
-                            <th class="px-5 py-3 text-right">Monto</th>
+                            <th class="px-5 py-3"><span class="inline-flex items-center gap-1.5"><FileText :size="12" /> Descripción</span></th>
+                            <th class="px-5 py-3 text-right"><span class="inline-flex items-center gap-1.5"><Coins :size="12" /> Monto</span></th>
                             <th class="px-5 py-3"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-if="transferencias.length === 0">
+                        <tr v-if="transferencias.data.length === 0">
                             <td colspan="6" class="px-5 py-10 text-center text-ink-400">Aún no has hecho transferencias entre cuentas.</td>
                         </tr>
-                        <tr v-for="t in transferencias" :key="t.id" class="border-b border-ink-50 last:border-0 hover:bg-ink-50/60">
+                        <tr
+                            v-for="(t, i) in transferencias.data"
+                            :key="t.id"
+                            class="animate-fade-in border-b border-ink-50 transition-colors last:border-0 hover:bg-ink-50/60"
+                            :style="{ animationDelay: `${i * 25}ms` }"
+                        >
                             <td class="px-5 py-3 text-ink-500">{{ formatFecha(t.fecha) }}</td>
                             <td class="px-5 py-3 text-ink-800">{{ t.cuenta_origen.nombre }}</td>
-                            <td class="px-5 py-3 text-ink-800">{{ t.cuenta_destino.nombre }}</td>
+                            <td class="px-5 py-3">
+                                <span class="inline-flex items-center gap-1 text-ink-800"><ArrowLeftRight :size="12" class="text-brand-500" /> {{ t.cuenta_destino.nombre }}</span>
+                            </td>
                             <td class="px-5 py-3 text-ink-500">{{ t.descripcion || '-' }}</td>
-                            <td class="px-5 py-3 text-right font-semibold text-ink-900">{{ formatCurrency(t.monto) }}</td>
+                            <td class="px-5 py-3 text-right font-semibold text-brand-700">{{ formatCurrency(t.monto) }}</td>
                             <td class="px-5 py-3 text-right">
                                 <button class="text-ink-400 transition hover:text-rose-600" title="Eliminar" @click="eliminarTransferencia(t)"><Trash2 :size="15" /></button>
                             </td>
@@ -314,6 +349,7 @@ function eliminarTransferencia(t) {
                     </tbody>
                 </table>
             </div>
+            <Pagination :paginator="transferencias" />
         </Card>
 
         <!-- Modal movimiento -->

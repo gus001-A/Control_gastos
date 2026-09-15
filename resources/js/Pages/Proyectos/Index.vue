@@ -14,7 +14,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
 import { confirmar } from '@/lib/alertas';
-import { Plus, Pencil, Trash2, Eye } from '@lucide/vue';
+import { Plus, Pencil, Trash2, Eye, Briefcase, User, CalendarClock, CalendarDays, Coins, StickyNote, Clock, CheckCircle2, XCircle } from '@lucide/vue';
 
 const props = defineProps({
     proyectos: Array,
@@ -22,6 +22,7 @@ const props = defineProps({
 });
 
 const ESTADO_COLOR = { activo: '#0ea5e9', terminado: '#16a34a', cancelado: '#94a3b8' };
+const ESTADO_ICON = { activo: Clock, terminado: CheckCircle2, cancelado: XCircle };
 
 const showModal = ref(false);
 const editando = ref(null);
@@ -97,33 +98,68 @@ function eliminar(proyecto) {
             Aún no tienes proyectos freelance registrados. Agrega el primero con el botón de arriba.
         </div>
 
-        <div v-else class="space-y-4">
-            <div v-for="proyecto in proyectos" :key="proyecto.id" class="animate-fade-in rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition-shadow duration-200 hover:shadow-glow">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <div class="font-bold text-ink-900">{{ proyecto.nombre }}</div>
-                        <div v-if="proyecto.cliente" class="text-xs text-ink-400">{{ proyecto.cliente }}</div>
+        <div v-else class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+                v-for="(proyecto, i) in proyectos"
+                :key="proyecto.id"
+                class="group relative animate-fade-in overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow"
+                :style="{ animationDelay: `${i * 40}ms` }"
+            >
+                <div class="h-1.5 w-full" :style="{ backgroundColor: ESTADO_COLOR[proyecto.estado] }" />
+
+                <div class="p-5">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-110"
+                                :style="{ backgroundColor: ESTADO_COLOR[proyecto.estado] + '18', color: ESTADO_COLOR[proyecto.estado] }"
+                            >
+                                <Briefcase :size="20" />
+                            </div>
+                            <div>
+                                <div class="font-bold leading-tight text-ink-900">{{ proyecto.nombre }}</div>
+                                <div v-if="proyecto.cliente" class="inline-flex items-center gap-1 text-xs text-ink-400"><User :size="11" /> {{ proyecto.cliente }}</div>
+                            </div>
+                        </div>
+                        <span
+                            class="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold"
+                            :style="{ backgroundColor: ESTADO_COLOR[proyecto.estado] + '14', color: ESTADO_COLOR[proyecto.estado] }"
+                        >
+                            <component :is="ESTADO_ICON[proyecto.estado]" :size="12" /> {{ estados[proyecto.estado] }}
+                        </span>
                     </div>
-                    <span class="text-xs font-bold" :style="{ color: ESTADO_COLOR[proyecto.estado] }">{{ estados[proyecto.estado] }}</span>
-                </div>
 
-                <ProgressBar :value="proyecto.progreso" class="mt-3" :color="ESTADO_COLOR[proyecto.estado]" />
+                    <p v-if="proyecto.descripcion" class="mt-3 line-clamp-2 text-xs text-ink-500">{{ proyecto.descripcion }}</p>
 
-                <div class="mt-2 flex flex-wrap justify-between gap-2 text-xs text-ink-500">
-                    <span>Pagado {{ formatCurrency(proyecto.pagado) }} de {{ formatCurrency(proyecto.monto_cobrado) }} · Pendiente {{ formatCurrency(proyecto.pendiente) }}</span>
-                    <span v-if="proyecto.fecha_entrega">Entrega: {{ formatFecha(proyecto.fecha_entrega) }}</span>
-                </div>
+                    <div class="mt-5 flex items-baseline justify-between">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-ink-400">Pendiente</span>
+                        <span class="text-2xl font-extrabold tracking-tight" :style="{ color: ESTADO_COLOR[proyecto.estado] }">
+                            {{ formatCurrency(proyecto.pendiente) }}
+                        </span>
+                    </div>
 
-                <div class="mt-4 flex gap-2">
-                    <Link :href="route('proyectos.show', proyecto.id)" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:-translate-y-px hover:bg-brand-700 hover:shadow-glow">
-                        <Eye :size="13" /> Ver / registrar pago
-                    </Link>
-                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(proyecto)">
-                        <Pencil :size="13" /> Editar
-                    </button>
-                    <button class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="eliminar(proyecto)">
-                        <Trash2 :size="13" /> Eliminar
-                    </button>
+                    <div class="mt-2 flex items-center gap-3">
+                        <ProgressBar :value="proyecto.progreso" class="flex-1" :color="ESTADO_COLOR[proyecto.estado]" />
+                        <span class="w-10 shrink-0 text-right text-xs font-bold text-ink-500">{{ proyecto.progreso }}%</span>
+                    </div>
+                    <div class="mt-1.5 flex items-center justify-between text-xs text-ink-400">
+                        <span class="inline-flex items-center gap-1"><Coins :size="12" /> {{ formatCurrency(proyecto.pagado) }} de {{ formatCurrency(proyecto.monto_cobrado) }}</span>
+                        <span v-if="proyecto.fecha_entrega" class="inline-flex items-center gap-1">
+                            <CalendarClock :size="12" /> {{ formatFecha(proyecto.fecha_entrega) }}
+                        </span>
+                    </div>
+
+                    <div class="mt-4 flex gap-2 border-t border-ink-50 pt-4">
+                        <Link :href="route('proyectos.show', proyecto.id)" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:-translate-y-px hover:bg-brand-700 hover:shadow-glow">
+                            <Eye :size="13" /> Ver / pago
+                        </Link>
+                        <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(proyecto)">
+                            <Pencil :size="13" /> Editar
+                        </button>
+                        <button class="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="eliminar(proyecto)">
+                            <Trash2 :size="13" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -139,7 +175,7 @@ function eliminar(proyecto) {
                         <InputError :message="form.errors.nombre" />
                     </div>
                     <div>
-                        <InputLabel value="Cliente (opcional)" />
+                        <InputLabel value="Cliente (opcional)" :icon="User" />
                         <TextInput v-model="form.cliente" class="mt-1" placeholder="¿Para quién es?" />
                     </div>
                     <div>
@@ -148,7 +184,7 @@ function eliminar(proyecto) {
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <InputLabel value="Cuánto vas a cobrar" />
+                            <InputLabel value="Cuánto vas a cobrar" :icon="Coins" />
                             <CurrencyInput v-model="form.monto_cobrado" class="mt-1" />
                             <InputError :message="form.errors.monto_cobrado" />
                         </div>
@@ -161,11 +197,11 @@ function eliminar(proyecto) {
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <InputLabel value="Fecha de inicio" />
+                            <InputLabel value="Fecha de inicio" :icon="CalendarDays" />
                             <TextInput v-model="form.fecha_inicio" type="date" class="mt-1" />
                         </div>
                         <div>
-                            <InputLabel value="Fecha de entrega" />
+                            <InputLabel value="Fecha de entrega" :icon="CalendarClock" />
                             <TextInput v-model="form.fecha_entrega" type="date" class="mt-1" :disabled="sinFecha" />
                             <label class="mt-1 flex items-center gap-1.5 text-xs text-ink-500">
                                 <input type="checkbox" v-model="sinFecha" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500" />
@@ -174,7 +210,7 @@ function eliminar(proyecto) {
                         </div>
                     </div>
                     <div>
-                        <InputLabel value="Notas (opcional)" />
+                        <InputLabel value="Notas (opcional)" :icon="StickyNote" />
                         <Textarea v-model="form.notas" class="mt-1" :rows="2" />
                     </div>
                 </div>
