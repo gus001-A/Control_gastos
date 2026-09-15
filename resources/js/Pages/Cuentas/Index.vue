@@ -3,15 +3,16 @@ import { ref } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
-import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import SelectInput from '@/Components/SelectInput.vue';
+import CurrencyInput from '@/Components/CurrencyInput.vue';
 import Textarea from '@/Components/Textarea.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency } from '@/utils';
+import { confirmar } from '@/lib/alertas';
 import { Plus, Pencil, Trash2, Wallet, Landmark, PiggyBank, CreditCard, TrendingUp, Layers, Check } from '@lucide/vue';
 
 const props = defineProps({
@@ -24,7 +25,6 @@ const ICONOS_TIPO = { efectivo: Wallet, banco: Landmark, ahorro: PiggyBank, tarj
 
 const showModal = ref(false);
 const editando = ref(null);
-const confirmando = ref(null);
 
 const form = useForm({
     nombre: '',
@@ -64,8 +64,12 @@ function guardar() {
     }
 }
 
-function eliminar() {
-    router.delete(route('cuentas.destroy', confirmando.value.id), { onFinish: () => (confirmando.value = null) });
+function eliminar(cuenta) {
+    confirmar({
+        title: 'Eliminar cuenta',
+        content: `¿Eliminar la cuenta "${cuenta.nombre}"? Si tiene movimientos, se marcará como inactiva en vez de borrarse.`,
+        onOk: () => router.delete(route('cuentas.destroy', cuenta.id)),
+    });
 }
 </script>
 
@@ -113,7 +117,7 @@ function eliminar() {
                     </button>
                     <button
                         class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
-                        @click="confirmando = cuenta"
+                        @click="eliminar(cuenta)"
                     >
                         <Trash2 :size="13" /> Eliminar
                     </button>
@@ -141,7 +145,7 @@ function eliminar() {
                         </div>
                         <div>
                             <InputLabel value="Saldo inicial" />
-                            <TextInput v-model="form.saldo_inicial" type="number" step="0.01" class="mt-1" />
+                            <CurrencyInput v-model="form.saldo_inicial" class="mt-1" />
                             <InputError :message="form.errors.saldo_inicial" />
                         </div>
                     </div>
@@ -175,13 +179,5 @@ function eliminar() {
                 </div>
             </form>
         </Modal>
-
-        <ConfirmDialog
-            :show="!!confirmando"
-            title="Eliminar cuenta"
-            :message="confirmando ? `¿Eliminar la cuenta '${confirmando.nombre}'? Si tiene movimientos, se marcará como inactiva en vez de borrarse.` : ''"
-            @confirm="eliminar"
-            @cancel="confirmando = null"
-        />
     </AuthenticatedLayout>
 </template>

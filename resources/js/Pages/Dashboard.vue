@@ -6,6 +6,7 @@ import StatCard from '@/Components/StatCard.vue';
 import Badge from '@/Components/Badge.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
+import { exito, error as mostrarError } from '@/lib/alertas';
 import { Wallet, ArrowUpCircle, ArrowDownCircle, TrendingDown, Briefcase, Repeat, CheckCircle2 } from '@lucide/vue';
 
 const props = defineProps({
@@ -18,7 +19,15 @@ const props = defineProps({
 });
 
 function pagarCargo(cargo) {
-    router.post(route('recurrentes.pagar', cargo.id), { fecha: hoyIso() }, { preserveScroll: true });
+    router.post(
+        route('recurrentes.pagar', cargo.id),
+        { fecha: hoyIso() },
+        {
+            preserveScroll: true,
+            onSuccess: () => exito(`Pago de "${cargo.nombre}" registrado.`),
+            onError: (errors) => mostrarError(Object.values(errors)[0] || 'No se pudo registrar el pago.'),
+        },
+    );
 }
 
 const maxCategoria = computed(() => Math.max(1, ...props.gastosPorCategoria.map((c) => Number(c.total))));

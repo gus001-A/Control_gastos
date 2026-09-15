@@ -43,6 +43,10 @@ class Proyecto extends Model
 
     public function getPagadoAttribute(): float
     {
+        if (array_key_exists('pagos_sum_monto', $this->attributes)) {
+            return round((float) ($this->attributes['pagos_sum_monto'] ?? 0), 2);
+        }
+
         return round((float) $this->pagos()->sum('monto'), 2);
     }
 

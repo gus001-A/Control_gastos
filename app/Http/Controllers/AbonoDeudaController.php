@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ValidaSaldoCuenta;
 use App\Models\AbonoDeuda;
+use App\Models\Cuenta;
 use App\Models\Deuda;
 use App\Models\Movimiento;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 
 class AbonoDeudaController extends Controller
 {
+    use ValidaSaldoCuenta;
+
     public function store(Request $request, Deuda $deuda): RedirectResponse
     {
         abort_unless($deuda->user_id === Auth::id(), 403);
@@ -22,6 +26,10 @@ class AbonoDeudaController extends Controller
             'fecha' => 'required|date',
             'notas' => 'nullable|string|max:255',
         ]);
+
+        if (! empty($datos['cuenta_id'])) {
+            $this->asegurarFondos(Cuenta::findOrFail($datos['cuenta_id']), (float) $datos['monto']);
+        }
 
         DB::transaction(function () use ($datos, $deuda) {
             $movimientoId = null;

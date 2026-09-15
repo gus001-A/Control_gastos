@@ -13,7 +13,8 @@ class DeudaController extends Controller
 {
     public function index(): Response
     {
-        $deudas = Auth::user()->deudas()->orderBy('estado')->orderByRaw('fecha_limite IS NULL')->orderBy('fecha_limite')->get();
+        $deudas = Auth::user()->deudas()->withSum('abonos', 'monto')
+            ->orderBy('estado')->orderByRaw('fecha_limite IS NULL')->orderBy('fecha_limite')->get();
 
         return Inertia::render('Deudas/Index', [
             'deudas' => $deudas,
@@ -29,7 +30,7 @@ class DeudaController extends Controller
         return Inertia::render('Deudas/Show', [
             'deuda' => $deuda,
             'abonos' => $abonos,
-            'cuentas' => Auth::user()->cuentas()->where('activa', true)->orderBy('nombre')->get(['id', 'nombre']),
+            'cuentas' => Auth::user()->cuentas()->conSaldo()->where('activa', true)->orderBy('nombre')->get(['id', 'nombre']),
         ]);
     }
 
@@ -64,7 +65,6 @@ class DeudaController extends Controller
             'nombre' => 'required|string|max:255',
             'acreedor' => 'nullable|string|max:255',
             'monto_total' => 'required|numeric|min:0.01',
-            'tasa_interes' => 'nullable|numeric|min:0',
             'fecha_inicio' => 'nullable|date',
             'fecha_limite' => 'nullable|date',
             'notas' => 'nullable|string',

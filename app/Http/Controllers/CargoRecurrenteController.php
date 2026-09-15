@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ValidaSaldoCuenta;
 use App\Models\CargoRecurrente;
 use App\Models\Movimiento;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,8 @@ use Inertia\Response;
 
 class CargoRecurrenteController extends Controller
 {
+    use ValidaSaldoCuenta;
+
     public function index(): Response
     {
         $cargos = Auth::user()->cargosRecurrentes()
@@ -24,7 +27,7 @@ class CargoRecurrenteController extends Controller
         return Inertia::render('CargosRecurrentes/Index', [
             'cargos' => $cargos,
             'frecuencias' => CargoRecurrente::FRECUENCIAS,
-            'cuentas' => Auth::user()->cuentas()->where('activa', true)->orderBy('nombre')->get(['id', 'nombre']),
+            'cuentas' => Auth::user()->cuentas()->conSaldo()->where('activa', true)->orderBy('nombre')->get(['id', 'nombre']),
             'categorias' => Auth::user()->categorias()->where('tipo', 'gasto')->orderBy('nombre')->get(['id', 'nombre', 'color']),
         ]);
     }
@@ -61,6 +64,8 @@ class CargoRecurrenteController extends Controller
         $datos = $request->validate([
             'fecha' => 'required|date',
         ]);
+
+        $this->asegurarFondos($recurrente->cuenta, (float) $recurrente->monto, campo: 'fecha');
 
         DB::transaction(function () use ($recurrente, $datos) {
             Movimiento::create([

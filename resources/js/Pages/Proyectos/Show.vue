@@ -4,15 +4,16 @@ import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Card from '@/Components/Card.vue';
 import Modal from '@/Components/Modal.vue';
-import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import ProgressBar from '@/Components/ProgressBar.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import CurrencyInput from '@/Components/CurrencyInput.vue';
 import SelectInput from '@/Components/SelectInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
+import { confirmar } from '@/lib/alertas';
 import { Plus, Trash2, ArrowLeft } from '@lucide/vue';
 
 const props = defineProps({
@@ -43,9 +44,12 @@ function guardar() {
     form.post(route('pagos.store', props.proyecto.id), { onSuccess: () => (showModal.value = false) });
 }
 
-const confirmando = ref(null);
-function eliminarPago() {
-    router.delete(route('pagos.destroy', confirmando.value.id), { onFinish: () => (confirmando.value = null) });
+function eliminarPago(pago) {
+    confirmar({
+        title: 'Eliminar pago',
+        content: '¿Eliminar este pago? Se revertirá el monto en la cuenta asociada.',
+        onOk: () => router.delete(route('pagos.destroy', pago.id)),
+    });
 }
 </script>
 
@@ -101,7 +105,7 @@ function eliminarPago() {
                             <td class="px-5 py-3 text-ink-500">{{ p.notas || '-' }}</td>
                             <td class="px-5 py-3 text-right font-semibold text-brand-700">{{ formatCurrency(p.monto) }}</td>
                             <td class="px-5 py-3 text-right">
-                                <button class="text-ink-400 transition hover:text-rose-600" title="Eliminar" @click="confirmando = p"><Trash2 :size="15" /></button>
+                                <button class="text-ink-400 transition hover:text-rose-600" title="Eliminar" @click="eliminarPago(p)"><Trash2 :size="15" /></button>
                             </td>
                         </tr>
                     </tbody>
@@ -123,7 +127,7 @@ function eliminarPago() {
                     </div>
                     <div>
                         <InputLabel :value="`Monto recibido (faltan ${formatCurrency(proyecto.pendiente)})`" />
-                        <TextInput v-model="form.monto" type="number" step="0.01" class="mt-1" />
+                        <CurrencyInput v-model="form.monto" class="mt-1" />
                         <InputError :message="form.errors.monto" />
                     </div>
                     <div>
@@ -142,13 +146,5 @@ function eliminarPago() {
                 </div>
             </form>
         </Modal>
-
-        <ConfirmDialog
-            :show="!!confirmando"
-            title="Eliminar pago"
-            message="¿Eliminar este pago? Se revertirá el monto en la cuenta asociada."
-            @confirm="eliminarPago"
-            @cancel="confirmando = null"
-        />
     </AuthenticatedLayout>
 </template>

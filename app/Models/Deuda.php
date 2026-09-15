@@ -13,13 +13,12 @@ class Deuda extends Model
     use HasFactory, SerializaFechaCorta;
 
     protected $fillable = [
-        'user_id', 'nombre', 'acreedor', 'monto_total', 'tasa_interes',
+        'user_id', 'nombre', 'acreedor', 'monto_total',
         'fecha_inicio', 'fecha_limite', 'estado', 'notas',
     ];
 
     protected $casts = [
         'monto_total' => 'decimal:2',
-        'tasa_interes' => 'decimal:2',
         'fecha_inicio' => 'date:Y-m-d',
         'fecha_limite' => 'date:Y-m-d',
     ];
@@ -38,6 +37,10 @@ class Deuda extends Model
 
     public function getPagadoAttribute(): float
     {
+        if (array_key_exists('abonos_sum_monto', $this->attributes)) {
+            return round((float) ($this->attributes['abonos_sum_monto'] ?? 0), 2);
+        }
+
         return round((float) $this->abonos()->sum('monto'), 2);
     }
 

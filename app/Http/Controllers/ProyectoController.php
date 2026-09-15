@@ -13,7 +13,8 @@ class ProyectoController extends Controller
 {
     public function index(): Response
     {
-        $proyectos = Auth::user()->proyectos()->orderBy('estado')->orderByDesc('fecha_inicio')->get();
+        $proyectos = Auth::user()->proyectos()->withSum('pagos', 'monto')
+            ->orderBy('estado')->orderByDesc('fecha_inicio')->get();
 
         return Inertia::render('Proyectos/Index', [
             'proyectos' => $proyectos,
@@ -31,7 +32,7 @@ class ProyectoController extends Controller
             'proyecto' => $proyecto,
             'pagos' => $pagos,
             'estados' => Proyecto::ESTADOS,
-            'cuentas' => Auth::user()->cuentas()->where('activa', true)->orderBy('nombre')->get(['id', 'nombre']),
+            'cuentas' => Auth::user()->cuentas()->conSaldo()->where('activa', true)->orderBy('nombre')->get(['id', 'nombre']),
         ]);
     }
 

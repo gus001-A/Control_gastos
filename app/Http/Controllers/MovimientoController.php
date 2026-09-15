@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ValidaSaldoCuenta;
+use App\Models\Cuenta;
 use App\Models\Movimiento;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,6 +13,8 @@ use Inertia\Response;
 
 class MovimientoController extends Controller
 {
+    use ValidaSaldoCuenta;
+
     /** Orígenes que no se pueden editar/eliminar directo porque otra pantalla lleva su cuenta (deudas, proyectos). */
     private const ORIGENES_BLOQUEADOS = ['abono_deuda', 'pago_proyecto'];
 
@@ -57,7 +61,7 @@ class MovimientoController extends Controller
         return Inertia::render('Movimientos/Index', [
             'movimientos' => $movimientos,
             'transferencias' => $transferenciasList,
-            'cuentas' => Auth::user()->cuentas()->orderBy('nombre')->get(['id', 'nombre', 'activa', 'color']),
+            'cuentas' => Auth::user()->cuentas()->conSaldo()->orderBy('nombre')->get(['id', 'nombre', 'activa', 'color']),
             'categorias' => Auth::user()->categorias()->orderBy('tipo')->orderBy('nombre')->get(),
             'filtros' => $request->only(['cuenta_id', 'categoria_id', 'tipo', 'texto', 'fecha_inicio', 'fecha_fin']),
             'totales' => [
@@ -70,6 +74,11 @@ class MovimientoController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $datos = $this->validarDatos($request);
+
+        if ($datos['tipo'] === 'gasto') {
+            $this->asegurarFondos(Cuenta::findOrFail($datos['cuenta_id']), (float) $datos['monto']);
+        }
+
         $datos['user_id'] = Auth::id();
         $datos['origen'] = 'manual';
         Movimiento::create($datos);
@@ -85,7 +94,13 @@ class MovimientoController extends Controller
             return back()->with('error', 'Este movimiento se generó automáticamente; edítalo desde deudas o proyectos.');
         }
 
-        $movimiento->update($this->validarDatos($request));
+        $datos = $this->validarDatos($request);
+
+        if ($datos['tipo'] === 'gasto') {
+            $this->asegurarFondos(Cuenta::findOrFail($datos['cuenta_id']), (float) $datos['monto'], $movimiento);
+        }
+
+        $movimiento->update($datos);
 
         return back()->with('success', 'Movimiento actualizado.');
     }
