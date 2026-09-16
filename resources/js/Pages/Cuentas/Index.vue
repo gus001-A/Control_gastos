@@ -110,13 +110,13 @@ function eliminar(cuenta) {
                 </div>
                 <div class="mt-4 flex gap-2">
                     <button
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 transition hover:-translate-y-px hover:bg-brand-100 hover:shadow-sm active:translate-y-0"
                         @click="abrirEditar(cuenta)"
                     >
                         <Pencil :size="13" /> Editar
                     </button>
                     <button
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:-translate-y-px hover:bg-rose-100 hover:shadow-sm active:translate-y-0"
                         @click="eliminar(cuenta)"
                     >
                         <Trash2 :size="13" /> Eliminar

@@ -295,11 +295,17 @@ function eliminarTransferencia(t) {
                                 {{ m.tipo === 'ingreso' ? '+' : '-' }} {{ formatCurrency(m.monto) }}
                             </td>
                             <td class="px-5 py-3 text-right">
-                                <div class="flex justify-end gap-3 whitespace-nowrap">
-                                    <button class="text-ink-400 transition hover:text-brand-600" title="Editar" @click="abrirEditar(m)"><Pencil :size="15" /></button>
+                                <div class="flex justify-end gap-1.5 whitespace-nowrap">
+                                    <button
+                                        class="flex h-8 w-8 items-center justify-center rounded-lg text-ink-400 transition hover:-translate-y-px hover:bg-brand-50 hover:text-brand-600"
+                                        title="Editar"
+                                        @click="abrirEditar(m)"
+                                    >
+                                        <Pencil :size="15" />
+                                    </button>
                                     <button
                                         v-if="!ORIGENES_BLOQUEADOS.includes(m.origen)"
-                                        class="text-ink-400 transition hover:text-rose-600"
+                                        class="flex h-8 w-8 items-center justify-center rounded-lg text-ink-400 transition hover:-translate-y-px hover:bg-rose-50 hover:text-rose-600"
                                         title="Eliminar"
                                         @click="eliminarMovimiento(m)"
                                     >
@@ -347,7 +353,13 @@ function eliminarTransferencia(t) {
                             <td class="px-5 py-3 text-ink-500">{{ t.descripcion || '-' }}</td>
                             <td class="px-5 py-3 text-right font-semibold text-brand-700">{{ formatCurrency(t.monto) }}</td>
                             <td class="px-5 py-3 text-right">
-                                <button class="text-ink-400 transition hover:text-rose-600" title="Eliminar" @click="eliminarTransferencia(t)"><Trash2 :size="15" /></button>
+                                <button
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-400 transition hover:-translate-y-px hover:bg-rose-50 hover:text-rose-600"
+                                    title="Eliminar"
+                                    @click="eliminarTransferencia(t)"
+                                >
+                                    <Trash2 :size="15" />
+                                </button>
                             </td>
                         </tr>
                     </tbody>

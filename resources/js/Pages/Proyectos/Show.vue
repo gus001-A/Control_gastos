@@ -104,7 +104,7 @@ function eliminarPago(pago) {
                     </div>
                     <div class="shrink-0 text-right text-base font-extrabold text-green-600">{{ formatCurrency(p.monto) }}</div>
                     <button
-                        class="shrink-0 text-ink-300 opacity-0 transition hover:text-rose-600 group-hover:opacity-100"
+                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-300 opacity-0 transition hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
                         title="Eliminar"
                         @click="eliminarPago(p)"
                     >

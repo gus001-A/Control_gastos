@@ -178,11 +178,11 @@ function pagarAhora(cargo) {
                         >
                             <CheckCircle2 :size="13" /> Pagar ahora
                         </button>
-                        <button class="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-200 hover:bg-brand-50" @click="abrirEditar(cargo)">
-                            <Pencil :size="13" />
+                        <button class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-700 transition hover:-translate-y-px hover:bg-brand-100 hover:shadow-sm active:translate-y-0" title="Editar" @click="abrirEditar(cargo)">
+                            <Pencil :size="14" />
                         </button>
-                        <button class="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" @click="eliminar(cargo)">
-                            <Trash2 :size="13" />
+                        <button class="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 transition hover:-translate-y-px hover:bg-rose-100 hover:shadow-sm active:translate-y-0" title="Eliminar" @click="eliminar(cargo)">
+                            <Trash2 :size="14" />
                         </button>
                     </div>
                 </div>
