@@ -14,45 +14,74 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
 import { confirmar } from '@/lib/alertas';
-import { Plus, Trash2, ArrowLeft, CreditCard, TrendingDown, Wallet, StickyNote, CalendarDays, History } from '@lucide/vue';
+import {
+    Plus,
+    Trash2,
+    ArrowLeft,
+    CreditCard,
+    CheckCircle2,
+    TrendingDown,
+    TrendingUp,
+    Wallet,
+    StickyNote,
+    CalendarDays,
+    CalendarClock,
+    History,
+    Landmark,
+} from '@lucide/vue';
 
 const props = defineProps({
     deuda: Object,
-    abonos: Array,
+    movimientos: Array,
     cuentas: Array,
 });
 
+const TIPOS = {
+    abono: { label: 'Abono', accion: 'Registrar abono', icon: TrendingDown, color: '#9333ea', bg: 'bg-brand-50', text: 'text-brand-700' },
+    aumento: { label: 'Aumento', accion: 'Registrar aumento', icon: TrendingUp, color: '#d97706', bg: 'bg-amber-50', text: 'text-amber-700' },
+};
+
 const showModal = ref(false);
 const form = useForm({
+    tipo: 'abono',
     cuenta_id: '',
     monto: '',
     fecha: hoyIso(),
     notas: '',
 });
 
-function abrirAbono() {
+function abrirModal(tipo) {
+    form.tipo = tipo;
     form.cuenta_id = '';
     form.fecha = hoyIso();
-    form.monto = props.deuda.restante > 0 ? props.deuda.restante : '';
+    form.monto = tipo === 'abono' && props.deuda.restante > 0 ? props.deuda.restante : '';
     form.notas = '';
     form.clearErrors();
     showModal.value = true;
 }
 
+const esAumento = computed(() => form.tipo === 'aumento');
 const cuentaSeleccionada = computed(() => props.cuentas.find((c) => c.id === form.cuenta_id));
 const fondosInsuficientes = computed(
-    () => cuentaSeleccionada.value && Number(form.monto) > cuentaSeleccionada.value.saldo,
+    () => !esAumento.value && cuentaSeleccionada.value && Number(form.monto) > cuentaSeleccionada.value.saldo,
 );
+const restanteProyectado = computed(() => {
+    const monto = Number(form.monto) || 0;
+    return esAumento.value ? props.deuda.restante + monto : props.deuda.restante - monto;
+});
 
 function guardar() {
     form.post(route('abonos.store', props.deuda.id), { onSuccess: () => (showModal.value = false) });
 }
 
-function eliminarAbono(abono) {
+function eliminarMovimiento(mov) {
+    const esAumentoMov = mov.tipo === 'aumento';
     confirmar({
-        title: 'Eliminar abono',
-        content: '¿Eliminar este abono? Se revertirá el monto en la cuenta asociada.',
-        onOk: () => router.delete(route('abonos.destroy', abono.id)),
+        title: esAumentoMov ? 'Eliminar aumento' : 'Eliminar abono',
+        content: esAumentoMov
+            ? '¿Eliminar este aumento? Se revertirá el monto en la cuenta asociada.'
+            : '¿Eliminar este abono? Se revertirá el monto en la cuenta asociada.',
+        onOk: () => router.delete(route('abonos.destroy', mov.id)),
     });
 }
 </script>
@@ -65,33 +94,49 @@ function eliminarAbono(abono) {
             <ArrowLeft :size="15" /> Volver a deudas
         </Link>
 
-        <Card>
-            <div class="flex flex-wrap items-start justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <div
-                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-                        :class="deuda.estado === 'pagada' ? 'bg-green-50 text-green-600' : 'bg-rose-50 text-rose-600'"
-                    >
-                        <CreditCard :size="22" />
+        <Card :padded="false" class="overflow-hidden">
+            <div
+                class="relative overflow-hidden bg-gradient-to-br p-6"
+                :class="deuda.estado === 'pagada' ? 'from-green-50 via-white to-white' : 'from-rose-50 via-white to-white'"
+            >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl shadow-sm"
+                            :class="deuda.estado === 'pagada' ? 'bg-green-100 text-green-600' : 'bg-rose-100 text-rose-600'"
+                        >
+                            <component :is="deuda.estado === 'pagada' ? CheckCircle2 : CreditCard" :size="22" />
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-extrabold text-ink-900">{{ deuda.nombre }}</h1>
+                            <p class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-500">
+                                <span v-if="deuda.acreedor" class="inline-flex items-center gap-1"><Landmark :size="13" /> {{ deuda.acreedor }}</span>
+                                <span v-if="deuda.fecha_limite" class="inline-flex items-center gap-1"><CalendarClock :size="13" /> {{ formatFecha(deuda.fecha_limite) }}</span>
+                                <span
+                                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold"
+                                    :class="deuda.estado === 'pagada' ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'"
+                                >
+                                    {{ deuda.estado === 'pagada' ? 'Pagada' : 'Activa' }}
+                                </span>
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 class="text-xl font-extrabold text-ink-900">{{ deuda.nombre }}</h1>
-                        <p class="mt-0.5 text-sm text-ink-500">
-                            <span v-if="deuda.acreedor">{{ deuda.acreedor }} · </span>
-                            <span v-if="deuda.fecha_limite">Fecha límite: {{ formatFecha(deuda.fecha_limite) }} · </span>
-                            {{ deuda.estado === 'pagada' ? 'Pagada' : 'Activa' }}
-                        </p>
+                    <div class="flex flex-wrap gap-2">
+                        <SecondaryButton @click="abrirModal('aumento')"><TrendingUp :size="15" /> Pedir más prestado</SecondaryButton>
+                        <PrimaryButton @click="abrirModal('abono')"><Plus :size="16" /> Registrar abono</PrimaryButton>
                     </div>
                 </div>
-                <PrimaryButton @click="abrirAbono"><Plus :size="16" /> Registrar abono</PrimaryButton>
+
+                <ProgressBar :value="deuda.progreso" class="mt-6" :color="deuda.estado === 'pagada' ? '#16a34a' : '#9333ea'" />
+                <p v-if="deuda.aumentos > 0" class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-amber-700">
+                    <TrendingUp :size="12" /> Monto original {{ formatCurrency(deuda.monto_total) }} + {{ formatCurrency(deuda.aumentos) }} en aumentos
+                </p>
             </div>
 
-            <ProgressBar :value="deuda.progreso" class="mt-6" :color="deuda.estado === 'pagada' ? '#16a34a' : '#9333ea'" />
-
-            <div class="mt-4 grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-3 gap-3 p-5">
                 <div class="rounded-xl bg-ink-50 p-3 text-center">
                     <div class="text-xs font-semibold uppercase tracking-wide text-ink-400">Total</div>
-                    <div class="mt-1 text-lg font-extrabold text-ink-900">{{ formatCurrency(deuda.monto_total) }}</div>
+                    <div class="mt-1 text-lg font-extrabold text-ink-900">{{ formatCurrency(deuda.monto_total_efectivo) }}</div>
                 </div>
                 <div class="rounded-xl bg-green-50 p-3 text-center">
                     <div class="text-xs font-semibold uppercase tracking-wide text-green-700">Pagado</div>
@@ -104,30 +149,44 @@ function eliminarAbono(abono) {
             </div>
         </Card>
 
-        <Card title="Historial de abonos" :icon="History" class="mt-6" :padded="false">
-            <div v-if="abonos.length === 0" class="px-5 py-10 text-center text-sm text-ink-400">Aún no has registrado abonos.</div>
+        <Card title="Historial de movimientos" :icon="History" class="mt-6" :padded="false">
+            <div v-if="movimientos.length === 0" class="flex flex-col items-center gap-2 px-5 py-12 text-center text-sm text-ink-400">
+                <History :size="28" class="text-ink-200" />
+                Aún no has registrado abonos ni aumentos.
+            </div>
             <div v-else class="divide-y divide-ink-50">
                 <div
-                    v-for="(a, i) in abonos"
-                    :key="a.id"
+                    v-for="(m, i) in movimientos"
+                    :key="m.id"
                     class="group flex animate-fade-in items-center gap-4 px-5 py-4 transition-colors hover:bg-ink-50/60"
                     :style="{ animationDelay: `${i * 30}ms` }"
                 >
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                        <TrendingDown :size="17" />
+                    <div
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                        :class="m.tipo === 'aumento' ? 'bg-amber-50 text-amber-600' : 'bg-brand-50 text-brand-600'"
+                    >
+                        <component :is="m.tipo === 'aumento' ? TrendingUp : TrendingDown" :size="17" />
                     </div>
                     <div class="min-w-0 flex-1">
                         <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                            <span class="inline-flex items-center gap-1 text-sm font-bold text-ink-900"><CalendarDays :size="12" class="text-ink-300" /> {{ formatFecha(a.fecha) }}</span>
-                            <span v-if="a.cuenta" class="inline-flex items-center gap-1 text-xs font-medium text-ink-400"><Wallet :size="11" /> {{ a.cuenta.nombre }}</span>
+                            <span class="inline-flex items-center gap-1 text-sm font-bold text-ink-900"><CalendarDays :size="12" class="text-ink-300" /> {{ formatFecha(m.fecha) }}</span>
+                            <span
+                                class="inline-flex items-center rounded-full px-1.5 py-0.5 text-[11px] font-bold"
+                                :class="m.tipo === 'aumento' ? 'bg-amber-50 text-amber-700' : 'bg-brand-50 text-brand-700'"
+                            >
+                                {{ m.tipo === 'aumento' ? 'Aumento' : 'Abono' }}
+                            </span>
+                            <span v-if="m.cuenta" class="inline-flex items-center gap-1 text-xs font-medium text-ink-400"><Wallet :size="11" /> {{ m.cuenta.nombre }}</span>
                         </div>
-                        <div v-if="a.notas" class="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-400"><StickyNote :size="11" /> {{ a.notas }}</div>
+                        <div v-if="m.notas" class="mt-0.5 inline-flex items-center gap-1 text-xs text-ink-400"><StickyNote :size="11" /> {{ m.notas }}</div>
                     </div>
-                    <div class="shrink-0 text-right text-base font-extrabold text-brand-700">{{ formatCurrency(a.monto) }}</div>
+                    <div class="shrink-0 text-right text-base font-extrabold" :class="m.tipo === 'aumento' ? 'text-amber-600' : 'text-brand-700'">
+                        {{ m.tipo === 'aumento' ? '+' : '-' }} {{ formatCurrency(m.monto) }}
+                    </div>
                     <button
                         class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-300 opacity-0 transition hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
                         title="Eliminar"
-                        @click="eliminarAbono(a)"
+                        @click="eliminarMovimiento(m)"
                     >
                         <Trash2 :size="15" />
                     </button>
@@ -137,13 +196,26 @@ function eliminarAbono(abono) {
 
         <Modal :show="showModal" max-width="sm" @close="showModal = false">
             <form class="p-6" @submit.prevent="guardar">
-                <h2 class="text-base font-bold text-ink-900">Registrar abono</h2>
+                <h2 class="text-base font-bold text-ink-900">{{ TIPOS[form.tipo].accion }}</h2>
+
+                <div class="mt-4 inline-flex rounded-xl bg-ink-50 p-1">
+                    <button
+                        v-for="(cfg, clave) in TIPOS"
+                        :key="clave"
+                        type="button"
+                        class="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition"
+                        :class="form.tipo === clave ? `bg-white shadow-sm ${cfg.text}` : 'text-ink-400 hover:text-ink-600'"
+                        @click="form.tipo = clave"
+                    >
+                        <component :is="cfg.icon" :size="15" /> {{ cfg.label }}
+                    </button>
+                </div>
 
                 <div class="mt-4 space-y-4">
                     <div>
-                        <InputLabel value="Pagar desde" />
+                        <InputLabel :value="esAumento ? 'Depositar en (opcional)' : 'Pagar desde'" :icon="Wallet" />
                         <SelectInput v-model="form.cuenta_id" class="mt-1">
-                            <option value="">(No descontar de ninguna cuenta)</option>
+                            <option value="">{{ esAumento ? '(No depositar en ninguna cuenta)' : '(No descontar de ninguna cuenta)' }}</option>
                             <option v-for="c in cuentas" :key="c.id" :value="c.id">{{ c.nombre }} ({{ formatCurrency(c.saldo) }})</option>
                         </SelectInput>
                         <p v-if="fondosInsuficientes" class="mt-1.5 text-xs font-semibold text-rose-600">
@@ -151,17 +223,19 @@ function eliminarAbono(abono) {
                         </p>
                     </div>
                     <div>
-                        <InputLabel :value="`Monto del abono (restan ${formatCurrency(deuda.restante)})`" />
+                        <InputLabel
+                            :value="esAumento ? `Monto del aumento (deuda quedaría en ${formatCurrency(restanteProyectado)})` : `Monto del abono (restan ${formatCurrency(deuda.restante)})`"
+                        />
                         <CurrencyInput v-model="form.monto" class="mt-1" />
                         <InputError :message="form.errors.monto" />
                     </div>
                     <div>
-                        <InputLabel value="Fecha" />
+                        <InputLabel value="Fecha" :icon="CalendarDays" />
                         <TextInput v-model="form.fecha" type="date" class="mt-1" />
                     </div>
                     <div>
-                        <InputLabel value="Notas (opcional)" />
-                        <TextInput v-model="form.notas" class="mt-1" />
+                        <InputLabel value="Notas (opcional)" :icon="StickyNote" />
+                        <TextInput v-model="form.notas" class="mt-1" :placeholder="esAumento ? 'Ej. Préstamo adicional del banco...' : ''" />
                     </div>
                 </div>
 

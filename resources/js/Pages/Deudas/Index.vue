@@ -13,7 +13,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
 import { confirmar } from '@/lib/alertas';
-import { Plus, Pencil, Trash2, Eye, CreditCard, CalendarClock, CheckCircle2, Landmark, Coins, CalendarDays, StickyNote } from '@lucide/vue';
+import { Plus, Pencil, Trash2, Eye, CreditCard, CalendarClock, CheckCircle2, Landmark, Coins, CalendarDays, StickyNote, TrendingUp } from '@lucide/vue';
 
 const props = defineProps({
     deudas: Array,
@@ -130,10 +130,13 @@ function eliminar(deuda) {
                         <span class="w-10 shrink-0 text-right text-xs font-bold text-ink-500">{{ deuda.progreso }}%</span>
                     </div>
                     <div class="mt-1.5 flex items-center justify-between text-xs text-ink-400">
-                        <span>Pagado {{ formatCurrency(deuda.pagado) }} de {{ formatCurrency(deuda.monto_total) }}</span>
+                        <span>Pagado {{ formatCurrency(deuda.pagado) }} de {{ formatCurrency(deuda.monto_total_efectivo) }}</span>
                         <span v-if="deuda.fecha_limite" class="inline-flex items-center gap-1">
                             <CalendarClock :size="12" /> {{ formatFecha(deuda.fecha_limite) }}
                         </span>
+                    </div>
+                    <div v-if="deuda.aumentos > 0" class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-amber-600">
+                        <TrendingUp :size="11" /> +{{ formatCurrency(deuda.aumentos) }} en aumentos
                     </div>
 
                     <div class="mt-4 flex gap-2 border-t border-ink-50 pt-4">

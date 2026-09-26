@@ -16,7 +16,7 @@ class MovimientoController extends Controller
     use ValidaSaldoCuenta;
 
     /** Orígenes que no se pueden editar/eliminar directo porque otra pantalla lleva su cuenta (deudas, proyectos). */
-    private const ORIGENES_BLOQUEADOS = ['abono_deuda', 'pago_proyecto'];
+    private const ORIGENES_BLOQUEADOS = ['abono_deuda', 'aumento_deuda', 'pago_proyecto'];
 
     public function index(Request $request): Response
     {

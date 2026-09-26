@@ -35,7 +35,7 @@ import {
     Receipt,
 } from '@lucide/vue';
 
-const ORIGENES_BLOQUEADOS = ['abono_deuda', 'pago_proyecto'];
+const ORIGENES_BLOQUEADOS = ['abono_deuda', 'aumento_deuda', 'pago_proyecto'];
 
 const props = defineProps({
     movimientos: Array,
@@ -263,12 +263,17 @@ function eliminarTransferencia(t) {
                     </thead>
                     <tbody>
                         <tr v-if="movimientos.data.length === 0">
-                            <td colspan="7" class="px-5 py-10 text-center text-ink-400">No hay movimientos con estos filtros.</td>
+                            <td colspan="7" class="px-5 py-14 text-center text-sm text-ink-400">
+                                <div class="flex flex-col items-center gap-2">
+                                    <Receipt :size="28" class="text-ink-200" />
+                                    No hay movimientos con estos filtros.
+                                </div>
+                            </td>
                         </tr>
                         <tr
                             v-for="(m, i) in movimientos.data"
                             :key="m.id"
-                            class="animate-fade-in border-b border-ink-50 transition-colors last:border-0 hover:bg-ink-50/60"
+                            class="animate-fade-in border-b border-ink-50 transition-colors last:border-0 odd:bg-ink-50/30 hover:!bg-brand-50/40"
                             :style="{ animationDelay: `${i * 25}ms` }"
                         >
                             <td class="px-5 py-3 text-ink-500">
@@ -335,12 +340,17 @@ function eliminarTransferencia(t) {
                     </thead>
                     <tbody>
                         <tr v-if="transferencias.data.length === 0">
-                            <td colspan="6" class="px-5 py-10 text-center text-ink-400">Aún no has hecho transferencias entre cuentas.</td>
+                            <td colspan="6" class="px-5 py-14 text-center text-sm text-ink-400">
+                                <div class="flex flex-col items-center gap-2">
+                                    <ArrowLeftRight :size="28" class="text-ink-200" />
+                                    Aún no has hecho transferencias entre cuentas.
+                                </div>
+                            </td>
                         </tr>
                         <tr
                             v-for="(t, i) in transferencias.data"
                             :key="t.id"
-                            class="animate-fade-in border-b border-ink-50 transition-colors last:border-0 hover:bg-ink-50/60"
+                            class="animate-fade-in border-b border-ink-50 transition-colors last:border-0 odd:bg-ink-50/30 hover:!bg-brand-50/40"
                             :style="{ animationDelay: `${i * 25}ms` }"
                         >
                             <td class="px-5 py-3 text-ink-500">

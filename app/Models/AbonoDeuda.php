@@ -13,7 +13,9 @@ class AbonoDeuda extends Model
 
     protected $table = 'abonos_deuda';
 
-    protected $fillable = ['deuda_id', 'cuenta_id', 'movimiento_id', 'monto', 'fecha', 'notas'];
+    public const TIPOS = ['abono' => 'Abono', 'aumento' => 'Aumento'];
+
+    protected $fillable = ['deuda_id', 'tipo', 'cuenta_id', 'movimiento_id', 'monto', 'fecha', 'notas'];
 
     protected $casts = [
         'monto' => 'decimal:2',

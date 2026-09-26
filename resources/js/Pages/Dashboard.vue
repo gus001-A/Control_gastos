@@ -164,12 +164,17 @@ const maxCategoria = computed(() => Math.max(1, ...props.gastosPorCategoria.map(
                     </thead>
                     <tbody>
                         <tr v-if="ultimosMovimientos.length === 0">
-                            <td colspan="5" class="px-5 py-8 text-center text-ink-400">Aún no tienes movimientos registrados.</td>
+                            <td colspan="5" class="px-5 py-10 text-center text-sm text-ink-400">
+                                <div class="flex flex-col items-center gap-2">
+                                    <Wallet :size="26" class="text-ink-200" />
+                                    Aún no tienes movimientos registrados.
+                                </div>
+                            </td>
                         </tr>
                         <tr
                             v-for="(m, i) in ultimosMovimientos"
                             :key="m.id"
-                            class="animate-fade-in border-b border-ink-50 transition-colors last:border-0 hover:bg-ink-50/60"
+                            class="animate-fade-in border-b border-ink-50 transition-colors last:border-0 odd:bg-ink-50/30 hover:!bg-brand-50/40"
                             :style="{ animationDelay: `${i * 25}ms` }"
                         >
                             <td class="px-5 py-3 text-ink-500">{{ formatFecha(m.fecha) }}</td>

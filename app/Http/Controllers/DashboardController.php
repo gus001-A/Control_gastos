@@ -29,7 +29,7 @@ class DashboardController extends Controller
             ->selectRaw("COALESCE(SUM(CASE WHEN tipo = 'gasto' THEN monto ELSE 0 END), 0) as gastos")
             ->first();
 
-        $deudasActivas = Deuda::where('user_id', $userId)->where('estado', 'activa')->withSum('abonos', 'monto')->get();
+        $deudasActivas = Deuda::where('user_id', $userId)->where('estado', 'activa')->withSum('abonos', 'monto')->withSum('aumentosDeuda', 'monto')->get();
         $proyectosActivos = Proyecto::where('user_id', $userId)->where('estado', 'activo')->withSum('pagos', 'monto')->get();
 
         $gastosPorCategoria = Movimiento::where('movimientos.user_id', $userId)

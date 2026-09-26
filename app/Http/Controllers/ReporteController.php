@@ -59,9 +59,9 @@ class ReporteController extends Controller
             'estado' => $p->estado,
         ]);
 
-        $deudas = Auth::user()->deudas()->withSum('abonos', 'monto')->get();
+        $deudas = Auth::user()->deudas()->withSum('abonos', 'monto')->withSum('aumentosDeuda', 'monto')->get();
         $resumenDeudas = [
-            'total' => round($deudas->sum(fn ($d) => (float) $d->monto_total), 2),
+            'total' => round($deudas->sum('montoTotalEfectivo'), 2),
             'pagado' => round($deudas->sum('pagado'), 2),
             'restante' => round($deudas->sum('restante'), 2),
             'activas' => $deudas->where('estado', 'activa')->count(),

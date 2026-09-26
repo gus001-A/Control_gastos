@@ -23,16 +23,27 @@ class Deuda extends Model
         'fecha_limite' => 'date:Y-m-d',
     ];
 
-    protected $appends = ['pagado', 'restante', 'progreso'];
+    protected $appends = ['pagado', 'aumentos', 'monto_total_efectivo', 'restante', 'progreso'];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** Todos los movimientos de la deuda: abonos y aumentos, más recientes primero. */
+    public function movimientosDeuda(): HasMany
+    {
+        return $this->hasMany(AbonoDeuda::class)->orderByDesc('fecha')->orderByDesc('id');
+    }
+
     public function abonos(): HasMany
     {
-        return $this->hasMany(AbonoDeuda::class);
+        return $this->hasMany(AbonoDeuda::class)->where('tipo', 'abono');
+    }
+
+    public function aumentosDeuda(): HasMany
+    {
+        return $this->hasMany(AbonoDeuda::class)->where('tipo', 'aumento');
     }
 
     public function getPagadoAttribute(): float
@@ -44,18 +55,33 @@ class Deuda extends Model
         return round((float) $this->abonos()->sum('monto'), 2);
     }
 
+    public function getAumentosAttribute(): float
+    {
+        if (array_key_exists('aumentos_deuda_sum_monto', $this->attributes)) {
+            return round((float) ($this->attributes['aumentos_deuda_sum_monto'] ?? 0), 2);
+        }
+
+        return round((float) $this->aumentosDeuda()->sum('monto'), 2);
+    }
+
+    public function getMontoTotalEfectivoAttribute(): float
+    {
+        return round((float) $this->monto_total + $this->aumentos, 2);
+    }
+
     public function getRestanteAttribute(): float
     {
-        return round((float) $this->monto_total - $this->pagado, 2);
+        return round($this->montoTotalEfectivo - $this->pagado, 2);
     }
 
     public function getProgresoAttribute(): int
     {
-        if ((float) $this->monto_total <= 0) {
+        $total = $this->montoTotalEfectivo;
+        if ($total <= 0) {
             return 0;
         }
 
-        return (int) min(100, round($this->pagado / (float) $this->monto_total * 100));
+        return (int) min(100, round($this->pagado / $total * 100));
     }
 
     public function revisarEstado(): void

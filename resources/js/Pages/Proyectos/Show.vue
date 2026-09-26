@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Card from '@/Components/Card.vue';
@@ -14,7 +14,22 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { formatCurrency, formatFecha, hoyIso } from '@/utils';
 import { confirmar } from '@/lib/alertas';
-import { Plus, Trash2, ArrowLeft, ArrowUpCircle, Wallet, StickyNote, CalendarDays, History } from '@lucide/vue';
+import {
+    Plus,
+    Trash2,
+    ArrowLeft,
+    ArrowUpCircle,
+    Wallet,
+    StickyNote,
+    CalendarDays,
+    CalendarClock,
+    History,
+    Briefcase,
+    User,
+    Clock,
+    CheckCircle2,
+    XCircle,
+} from '@lucide/vue';
 
 const props = defineProps({
     proyecto: Object,
@@ -22,6 +37,12 @@ const props = defineProps({
     estados: Object,
     cuentas: Array,
 });
+
+const ESTADO_COLOR = { activo: '#0ea5e9', terminado: '#16a34a', cancelado: '#94a3b8' };
+const ESTADO_ICON = { activo: Clock, terminado: CheckCircle2, cancelado: XCircle };
+const ESTADO_GRADIENTE = { activo: 'from-sky-50', terminado: 'from-green-50', cancelado: 'from-ink-50' };
+
+const color = computed(() => ESTADO_COLOR[props.proyecto.estado]);
 
 const showModal = ref(false);
 const form = useForm({
@@ -61,30 +82,52 @@ function eliminarPago(pago) {
             <ArrowLeft :size="15" /> Volver a proyectos
         </Link>
 
-        <Card>
-            <div class="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                    <h1 class="text-xl font-extrabold text-ink-900">{{ proyecto.nombre }}</h1>
-                    <p class="mt-1 text-sm text-ink-500">
-                        <span v-if="proyecto.cliente">Cliente: {{ proyecto.cliente }} · </span>
-                        <span v-if="proyecto.fecha_entrega">Entrega: {{ formatFecha(proyecto.fecha_entrega) }} · </span>
-                        Estado: {{ estados[proyecto.estado] }}
-                    </p>
-                    <p v-if="proyecto.descripcion" class="mt-2 max-w-2xl text-sm text-ink-600">{{ proyecto.descripcion }}</p>
+        <Card :padded="false" class="overflow-hidden">
+            <div class="relative overflow-hidden bg-gradient-to-br p-6 via-white to-white" :class="ESTADO_GRADIENTE[proyecto.estado]">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl shadow-sm" :style="{ backgroundColor: color + '22', color }">
+                            <Briefcase :size="22" />
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-extrabold text-ink-900">{{ proyecto.nombre }}</h1>
+                            <p class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-500">
+                                <span v-if="proyecto.cliente" class="inline-flex items-center gap-1"><User :size="13" /> {{ proyecto.cliente }}</span>
+                                <span v-if="proyecto.fecha_entrega" class="inline-flex items-center gap-1"><CalendarClock :size="13" /> {{ formatFecha(proyecto.fecha_entrega) }}</span>
+                                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold" :style="{ backgroundColor: color + '1f', color }">
+                                    <component :is="ESTADO_ICON[proyecto.estado]" :size="11" /> {{ estados[proyecto.estado] }}
+                                </span>
+                            </p>
+                            <p v-if="proyecto.descripcion" class="mt-2 max-w-2xl text-sm text-ink-600">{{ proyecto.descripcion }}</p>
+                        </div>
+                    </div>
+                    <PrimaryButton @click="abrirPago"><Plus :size="16" /> Registrar pago recibido</PrimaryButton>
                 </div>
-                <PrimaryButton @click="abrirPago"><Plus :size="16" /> Registrar pago recibido</PrimaryButton>
+
+                <ProgressBar :value="proyecto.progreso" class="mt-6" :color="color" />
             </div>
 
-            <ProgressBar :value="proyecto.progreso" class="mt-5" color="#0ea5e9" />
-            <div class="mt-2 text-sm text-ink-600">
-                Cobrado: <strong>{{ formatCurrency(proyecto.monto_cobrado) }}</strong> ·
-                Pagado: <strong class="text-brand-700">{{ formatCurrency(proyecto.pagado) }}</strong> ·
-                Pendiente: <strong class="text-amber-600">{{ formatCurrency(proyecto.pendiente) }}</strong>
+            <div class="grid grid-cols-3 gap-3 p-5">
+                <div class="rounded-xl bg-ink-50 p-3 text-center">
+                    <div class="text-xs font-semibold uppercase tracking-wide text-ink-400">Cobrado</div>
+                    <div class="mt-1 text-lg font-extrabold text-ink-900">{{ formatCurrency(proyecto.monto_cobrado) }}</div>
+                </div>
+                <div class="rounded-xl bg-green-50 p-3 text-center">
+                    <div class="text-xs font-semibold uppercase tracking-wide text-green-700">Pagado</div>
+                    <div class="mt-1 text-lg font-extrabold text-green-700">{{ formatCurrency(proyecto.pagado) }}</div>
+                </div>
+                <div class="rounded-xl bg-amber-50 p-3 text-center">
+                    <div class="text-xs font-semibold uppercase tracking-wide text-amber-700">Pendiente</div>
+                    <div class="mt-1 text-lg font-extrabold text-amber-700">{{ formatCurrency(proyecto.pendiente) }}</div>
+                </div>
             </div>
         </Card>
 
         <Card title="Historial de pagos" :icon="History" class="mt-6" :padded="false">
-            <div v-if="pagos.length === 0" class="px-5 py-10 text-center text-sm text-ink-400">Aún no has registrado pagos.</div>
+            <div v-if="pagos.length === 0" class="flex flex-col items-center gap-2 px-5 py-12 text-center text-sm text-ink-400">
+                <History :size="28" class="text-ink-200" />
+                Aún no has registrado pagos.
+            </div>
             <div v-else class="divide-y divide-ink-50">
                 <div
                     v-for="(p, i) in pagos"
@@ -120,7 +163,7 @@ function eliminarPago(pago) {
 
                 <div class="mt-4 space-y-4">
                     <div>
-                        <InputLabel value="Depositar en" />
+                        <InputLabel value="Depositar en" :icon="Wallet" />
                         <SelectInput v-model="form.cuenta_id" class="mt-1">
                             <option value="">(No depositar en ninguna cuenta)</option>
                             <option v-for="c in cuentas" :key="c.id" :value="c.id">{{ c.nombre }}</option>
@@ -132,11 +175,11 @@ function eliminarPago(pago) {
                         <InputError :message="form.errors.monto" />
                     </div>
                     <div>
-                        <InputLabel value="Fecha" />
+                        <InputLabel value="Fecha" :icon="CalendarDays" />
                         <TextInput v-model="form.fecha" type="date" class="mt-1" />
                     </div>
                     <div>
-                        <InputLabel value="Notas (opcional)" />
+                        <InputLabel value="Notas (opcional)" :icon="StickyNote" />
                         <TextInput v-model="form.notas" class="mt-1" placeholder="Ej. Anticipo, pago final..." />
                     </div>
                 </div>
