@@ -65,7 +65,14 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // Zona horaria local: "hoy" (p. ej. para no permitir fechas futuras) debe coincidir con el día del usuario.
+    'timezone' => env('APP_TIMEZONE', 'America/Mexico_City'),
+
+    /*
+    | Uso personal: si está activo, no hay pantalla de login y se entra
+    | directamente con el primer usuario registrado.
+    */
+    'auto_login' => (bool) env('AUTO_LOGIN', true),
 
     /*
     |--------------------------------------------------------------------------

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ValidaSaldoCuenta;
 use App\Models\Cuenta;
 use App\Models\Transferencia;
+use App\Support\Fechas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,9 +20,9 @@ class TransferenciaController extends Controller
             'cuenta_origen_id' => 'required|exists:cuentas,id|different:cuenta_destino_id',
             'cuenta_destino_id' => 'required|exists:cuentas,id',
             'monto' => 'required|numeric|min:0.01',
-            'fecha' => 'required|date',
+            'fecha' => Fechas::REGLA_NO_FUTURA,
             'descripcion' => 'nullable|string|max:255',
-        ]);
+        ], Fechas::MENSAJES_NO_FUTURA);
 
         $this->asegurarFondos(Cuenta::findOrFail($datos['cuenta_origen_id']), (float) $datos['monto']);
 

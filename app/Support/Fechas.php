@@ -14,6 +14,13 @@ class Fechas
         7 => 'Jul', 8 => 'Ago', 9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dic',
     ];
 
+    /** Fechas de registros que mueven dinero: no se permite registrar algo que aún no pasó. */
+    public const REGLA_NO_FUTURA = 'required|date|before_or_equal:today';
+
+    public const MENSAJES_NO_FUTURA = [
+        'fecha.before_or_equal' => 'La fecha no puede ser posterior a hoy.',
+    ];
+
     public static function nombreMes(int $mes): string
     {
         return self::MESES[$mes] ?? (string) $mes;

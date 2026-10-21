@@ -33,6 +33,8 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                // Con auto-login no tiene sentido "Cerrar sesión": se volvería a entrar solo.
+                'autoLogin' => (bool) config('app.auto_login'),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

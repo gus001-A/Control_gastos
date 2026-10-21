@@ -2,9 +2,10 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { exito, error as mostrarError } from '@/lib/alertas';
+import Alertas from '@/Components/Alertas.vue';
 import {
     LayoutDashboard, Wallet, Receipt, TrendingDown, Briefcase, PieChart,
-    Repeat, LogOut, Menu, X, Wallet as LogoIcon, PanelLeftClose, PanelLeftOpen,
+    Repeat, LogOut, User as UserIcon, Menu, X, Wallet as LogoIcon, ChevronDown,
 } from '@lucide/vue';
 
 defineProps({
@@ -14,24 +15,7 @@ defineProps({
 
 const page = usePage();
 const menuAbierto = ref(false);
-const colapsado = ref(false);
-
-onMounted(() => {
-    try {
-        colapsado.value = localStorage.getItem('cg_sidebar_colapsado') === '1';
-    } catch {
-        // localStorage no disponible (modo privado, etc.) — se queda expandido.
-    }
-});
-
-function alternarColapso() {
-    colapsado.value = !colapsado.value;
-    try {
-        localStorage.setItem('cg_sidebar_colapsado', colapsado.value ? '1' : '0');
-    } catch {
-        //
-    }
-}
+const userMenuAbierto = ref(false);
 
 watch(
     () => [page.props.flash?.success, page.props.flash?.error],
@@ -51,7 +35,8 @@ const NAV = [
     { key: 'reportes', label: 'Reportes', icon: PieChart, route: 'reportes.index' },
 ];
 
-const esActivo = (nombreRuta) => route().current(nombreRuta) || route().current(nombreRuta.split('.')[0] + '.*');
+const esActivo = (nombreRuta) =>
+    route().current(nombreRuta) || route().current(nombreRuta.split('.')[0] + '.*');
 
 const iniciales = computed(() => {
     const nombre = page.props.auth.user.name || '';
@@ -61,87 +46,145 @@ const iniciales = computed(() => {
         .map((p) => p[0]?.toUpperCase())
         .join('');
 });
+
+onMounted(() => {
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('[data-user-menu]')) {
+            userMenuAbierto.value = false;
+        }
+    });
+});
 </script>
 
 <template>
-    <div class="min-h-screen bg-ink-50">
-        <!-- Sidebar desktop -->
-        <aside
-            class="fixed inset-y-0 left-0 z-30 hidden flex-col bg-ink-950 transition-all duration-200 lg:flex"
-            :class="colapsado ? 'w-20' : 'w-64'"
-        >
-            <div class="flex items-center px-4 pb-3 pt-7" :class="colapsado ? 'justify-center' : 'justify-between'">
-                <div class="flex items-center gap-2.5 overflow-hidden">
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 shadow-glow">
-                        <LogoIcon :size="18" class="text-white" stroke-width="2.25" />
+    <div class="min-h-screen">
+
+        <!-- NAVBAR DESKTOP -->
+        <header class="sticky top-0 z-30 hidden border-b border-neutral-200/80 bg-white/80 backdrop-blur-xl lg:block">
+            <div class="mx-auto grid h-16 max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center gap-6 px-6">
+
+                <!-- Logo -->
+                <Link :href="route('dashboard')" class="group flex shrink-0 items-center gap-2.5 justify-self-start">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-purple-700 to-neutral-950 shadow-md shadow-purple-900/30 transition-transform duration-500 group-hover:rotate-[360deg]">
+                        <LogoIcon :size="17" class="text-white" stroke-width="2.25" />
                     </div>
-                    <p v-if="!colapsado" class="whitespace-nowrap text-[15px] font-extrabold tracking-tight text-white">Control de Gastos</p>
+                    <span class="text-gradient hidden whitespace-nowrap text-base font-bold tracking-tight xl:inline">
+                        Control de Gastos
+                    </span>
+                </Link>
+
+                <!-- Navegación -->
+                <nav class="flex items-center justify-center gap-1">
+                    <Link
+                        v-for="item in NAV"
+                        :key="item.key"
+                        :href="route(item.route)"
+                        class="group relative flex items-center gap-2 rounded-xl px-3.5 py-2 text-[13px] font-semibold transition-all duration-300"
+                        :class="esActivo(item.route)
+                            ? 'bg-neutral-950 text-white shadow-lg shadow-purple-900/30'
+                            : 'text-neutral-600 hover:-translate-y-0.5 hover:bg-purple-50 hover:text-purple-800'"
+                    >
+                        <component
+                            :is="item.icon"
+                            :size="16"
+                            stroke-width="2"
+                            class="shrink-0 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6"
+                            :class="esActivo(item.route) ? 'text-purple-400' : 'text-neutral-400 group-hover:text-purple-600'"
+                        />
+                        <span class="whitespace-nowrap">{{ item.label }}</span>
+                        <!-- Punto morado del activo -->
+                        <span
+                            v-if="esActivo(item.route)"
+                            class="absolute -bottom-1 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-purple-500 shadow-[0_0_8px_2px_rgba(168,85,247,0.6)]"
+                        ></span>
+                    </Link>
+                </nav>
+
+                <!-- User dropdown a la derecha -->
+                <div class="relative shrink-0 justify-self-end" data-user-menu>
+                    <button
+                        class="flex items-center gap-2 rounded-xl border border-neutral-200 px-2 py-1.5 transition-all duration-300 hover:border-purple-300 hover:bg-purple-50 hover:shadow-md"
+                        @click="userMenuAbierto = !userMenuAbierto"
+                    >
+                        <div class="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-neutral-950 text-[11px] font-bold text-white">
+                            {{ iniciales }}
+                        </div>
+                        <span class="hidden max-w-[140px] truncate text-[13px] font-medium text-neutral-700 xl:inline">
+                            {{ page.props.auth.user.name }}
+                        </span>
+                        <ChevronDown
+                            :size="14"
+                            class="text-neutral-400 transition-transform duration-300"
+                            :class="userMenuAbierto ? 'rotate-180 text-purple-600' : ''"
+                        />
+                    </button>
+
+                    <!-- Dropdown -->
+                    <Transition
+                        enter-active-class="transition ease-out duration-200"
+                        enter-from-class="opacity-0 -translate-y-2 scale-95"
+                        enter-to-class="opacity-100 translate-y-0 scale-100"
+                        leave-active-class="transition ease-in duration-150"
+                        leave-from-class="opacity-100 translate-y-0 scale-100"
+                        leave-to-class="opacity-0 -translate-y-2 scale-95"
+                    >
+                        <div
+                            v-if="userMenuAbierto"
+                            class="absolute right-0 mt-2 w-64 origin-top-right overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
+                        >
+                            <div class="border-b border-neutral-100 px-4 py-3">
+                                <p class="truncate text-sm font-semibold text-neutral-900">
+                                    {{ page.props.auth.user.name }}
+                                </p>
+                                <p class="truncate text-xs text-neutral-500">
+                                    {{ page.props.auth.user.email }}
+                                </p>
+                            </div>
+                            <div class="p-1.5">
+                                <Link
+                                    :href="route('profile.edit')"
+                                    class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-neutral-700 transition-all duration-200 hover:translate-x-1 hover:bg-purple-50 hover:text-purple-800"
+                                    @click="userMenuAbierto = false"
+                                >
+                                    <UserIcon :size="15" class="text-purple-600" />
+                                    Mi perfil
+                                </Link>
+                                <Link
+                                    v-if="!page.props.auth.autoLogin"
+                                    :href="route('logout')"
+                                    method="post"
+                                    as="button"
+                                    class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:text-neutral-900"
+                                    @click="userMenuAbierto = false"
+                                >
+                                    <LogOut :size="15" class="text-purple-600" />
+                                    Cerrar sesión
+                                </Link>
+                            </div>
+                        </div>
+                    </Transition>
                 </div>
             </div>
+        </header>
 
-            <nav class="mt-4 flex-1 space-y-1 px-3">
-                <Link
-                    v-for="item in NAV"
-                    :key="item.key"
-                    :href="route(item.route)"
-                    :title="colapsado ? item.label : ''"
-                    class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150"
-                    :class="[
-                        colapsado ? 'justify-center' : '',
-                        esActivo(item.route)
-                            ? 'bg-gradient-to-r from-brand-600/90 to-brand-700/60 text-white shadow-glow'
-                            : 'text-ink-300 hover:bg-white/5 hover:text-white',
-                    ]"
-                >
-                    <component
-                        :is="item.icon"
-                        :size="18"
-                        stroke-width="2"
-                        class="shrink-0 transition-transform duration-150 group-hover:scale-110"
-                        :class="esActivo(item.route) ? 'text-white' : 'text-ink-400 group-hover:text-brand-300'"
-                    />
-                    <span v-if="!colapsado" class="whitespace-nowrap">{{ item.label }}</span>
-                </Link>
-            </nav>
+        <!-- NAVBAR MOBILE (blanco) -->
+        <header class="sticky top-0 z-30 flex items-center justify-between border-b border-neutral-200/80 bg-white/90 px-4 py-3 backdrop-blur-md lg:hidden">
+            <Link :href="route('dashboard')" class="flex items-center gap-2">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 via-purple-700 to-neutral-950">
+                    <LogoIcon :size="15" class="text-white" stroke-width="2.25" />
+                </div>
+                <span class="text-sm font-semibold tracking-tight text-neutral-900">Control de Gastos</span>
+            </Link>
 
-            <div class="border-t border-white/10 p-3">
-                <button
-                    class="mb-1 flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-xs font-semibold text-ink-400 transition hover:bg-white/5 hover:text-white"
-                    :class="colapsado ? 'justify-center' : ''"
-                    @click="alternarColapso"
-                >
-                    <component :is="colapsado ? PanelLeftOpen : PanelLeftClose" :size="16" />
-                    <span v-if="!colapsado">Contraer menú</span>
-                </button>
+            <button
+                class="rounded-lg p-1.5 text-neutral-700 transition-all duration-200 hover:bg-neutral-100"
+                @click="menuAbierto = true"
+            >
+                <Menu :size="22" />
+            </button>
+        </header>
 
-                <Link
-                    :href="route('profile.edit')"
-                    class="flex items-center gap-2.5 rounded-xl px-2 py-2 text-sm text-ink-300 transition hover:bg-white/5 hover:text-white"
-                    :class="colapsado ? 'justify-center' : ''"
-                >
-                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-800 text-xs font-bold text-white">
-                        {{ iniciales }}
-                    </div>
-                    <div v-if="!colapsado" class="min-w-0">
-                        <div class="truncate font-semibold text-white">{{ page.props.auth.user.name }}</div>
-                        <div class="truncate text-xs text-ink-400">{{ page.props.auth.user.email }}</div>
-                    </div>
-                </Link>
-                <Link
-                    :href="route('logout')"
-                    method="post"
-                    as="button"
-                    :title="colapsado ? 'Cerrar sesión' : ''"
-                    class="mt-1 flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-xs font-semibold text-ink-400 transition hover:bg-white/5 hover:text-white"
-                    :class="colapsado ? 'justify-center' : ''"
-                >
-                    <LogOut :size="15" />
-                    <span v-if="!colapsado">Cerrar sesión</span>
-                </Link>
-            </div>
-        </aside>
-
-        <!-- Sidebar mobile (drawer) -->
+        <!-- MOBILE DRAWER (blanco) -->
         <Transition
             enter-active-class="transition ease-out duration-200"
             enter-from-class="opacity-0"
@@ -150,49 +193,81 @@ const iniciales = computed(() => {
             leave-from-class="opacity-100"
             leave-to-class="opacity-0"
         >
-            <div v-if="menuAbierto" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" @click="menuAbierto = false" />
+            <div
+                v-if="menuAbierto"
+                class="fixed inset-0 z-40 bg-neutral-950/30 backdrop-blur-[2px] lg:hidden"
+                @click="menuAbierto = false"
+            />
         </Transition>
+
         <Transition
             enter-active-class="transition ease-out duration-200"
-            enter-from-class="-translate-x-full"
+            enter-from-class="translate-x-full"
             enter-to-class="translate-x-0"
             leave-active-class="transition ease-in duration-150"
             leave-from-class="translate-x-0"
-            leave-to-class="-translate-x-full"
+            leave-to-class="translate-x-full"
         >
-            <aside v-if="menuAbierto" class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-ink-950 lg:hidden">
-                <div class="flex items-center justify-between px-6 pb-3 pt-7">
-                    <div class="flex items-center gap-2.5">
-                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700">
-                            <LogoIcon :size="18" class="text-white" stroke-width="2.25" />
+            <aside
+                v-if="menuAbierto"
+                class="fixed inset-y-0 right-0 z-50 flex w-72 flex-col bg-white lg:hidden"
+            >
+                <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 via-purple-700 to-neutral-950">
+                            <LogoIcon :size="15" class="text-white" stroke-width="2.25" />
                         </div>
-                        <p class="text-[15px] font-extrabold tracking-tight text-white">Control de Gastos</p>
+                        <span class="text-sm font-semibold text-neutral-900">Menú</span>
                     </div>
-                    <button class="rounded-lg p-1 text-ink-400 hover:bg-white/5 hover:text-white" @click="menuAbierto = false">
+                    <button
+                        class="rounded-lg p-1 text-neutral-500 transition-all duration-200 hover:bg-neutral-100 hover:text-neutral-900"
+                        @click="menuAbierto = false"
+                    >
                         <X :size="20" />
                     </button>
                 </div>
-                <nav class="mt-4 flex-1 space-y-1 px-3">
+
+                <nav class="flex-1 space-y-1 overflow-y-auto p-3">
                     <Link
                         v-for="item in NAV"
                         :key="item.key"
                         :href="route(item.route)"
-                        @click="menuAbierto = false"
-                        class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition"
+                        class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-300"
                         :class="esActivo(item.route)
-                            ? 'bg-gradient-to-r from-brand-600/90 to-brand-700/60 text-white'
-                            : 'text-ink-300 hover:bg-white/5 hover:text-white'"
+                            ? 'bg-neutral-950 text-white shadow-md shadow-purple-900/30'
+                            : 'text-neutral-700 hover:translate-x-1 hover:bg-purple-50 hover:text-purple-800'"
+                        @click="menuAbierto = false"
                     >
-                        <component :is="item.icon" :size="18" :class="esActivo(item.route) ? 'text-white' : 'text-ink-400'" />
+                        <component
+                            :is="item.icon"
+                            :size="18"
+                            class="transition-transform duration-300 group-hover:scale-110"
+                            :class="esActivo(item.route) ? 'text-purple-400' : 'text-neutral-400 group-hover:text-purple-600'"
+                        />
                         {{ item.label }}
                     </Link>
                 </nav>
-                <div class="border-t border-white/10 p-4">
+
+                <div class="border-t border-neutral-100 p-4">
+                    <div class="mb-2 flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-neutral-950 text-xs font-bold text-white">
+                            {{ iniciales }}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="truncate text-sm font-semibold text-neutral-900">
+                                {{ page.props.auth.user.name }}
+                            </div>
+                            <div class="truncate text-[11px] text-neutral-500">
+                                {{ page.props.auth.user.email }}
+                            </div>
+                        </div>
+                    </div>
                     <Link
+                        v-if="!page.props.auth.autoLogin"
                         :href="route('logout')"
                         method="post"
                         as="button"
-                        class="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-xs font-semibold text-ink-400 hover:bg-white/5 hover:text-white"
+                        class="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:text-neutral-900"
                     >
                         <LogOut :size="15" />
                         Cerrar sesión
@@ -201,28 +276,19 @@ const iniciales = computed(() => {
             </aside>
         </Transition>
 
-        <div class="transition-all duration-200" :class="colapsado ? 'lg:pl-20' : 'lg:pl-64'">
-            <header class="sticky top-0 z-20 flex items-center gap-3 border-b border-ink-100 bg-white/80 px-4 py-3 backdrop-blur lg:hidden">
-                <button class="rounded-lg p-1.5 text-ink-800 hover:bg-ink-50" @click="menuAbierto = true">
-                    <Menu :size="22" />
-                </button>
-                <div class="flex items-center gap-2">
-                    <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700">
-                        <LogoIcon :size="14" class="text-white" />
-                    </div>
-                    <span class="font-bold text-ink-900">Control de Gastos</span>
-                </div>
-            </header>
+        <!-- CONTENIDO -->
+        <main class="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            <div v-if="title" class="mb-6 animate-fade-in">
+                <h1 class="text-gradient text-2xl font-bold tracking-tight lg:text-3xl">
+                    {{ title }}
+                </h1>
+                <p v-if="subtitle" class="mt-0.5 text-sm text-neutral-500">{{ subtitle }}</p>
+            </div>
+            <div class="animate-fade-in">
+                <slot />
+            </div>
+        </main>
 
-            <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-                <div v-if="title" class="mb-6 animate-fade-in">
-                    <h1 class="text-2xl font-extrabold tracking-tight text-ink-900">{{ title }}</h1>
-                    <p v-if="subtitle" class="mt-0.5 text-sm text-ink-400">{{ subtitle }}</p>
-                </div>
-                <div class="animate-fade-in">
-                    <slot />
-                </div>
-            </main>
-        </div>
+        <Alertas />
     </div>
 </template>

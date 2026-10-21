@@ -81,34 +81,34 @@ const maxWidthClass = computed(() => {
         ref="dialog"
     >
         <Transition
-            enter-active-class="ease-out duration-300"
+            enter-active-class="ease-[cubic-bezier(0.2,0.9,0.3,1.2)] duration-300"
             enter-from-class="opacity-0"
             enter-to-class="opacity-100"
             leave-active-class="ease-in duration-200"
             leave-from-class="opacity-100"
             leave-to-class="opacity-0"
         >
-            <div v-show="show" class="fixed inset-0 z-50 bg-ink-900/60 backdrop-blur-sm" @click="close" />
+            <div v-show="show" class="fixed inset-0 z-50 bg-neutral-950/60 backdrop-blur-sm" @click="close" />
         </Transition>
 
         <div class="fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto p-4" scroll-region>
             <Transition
-                enter-active-class="ease-out duration-300"
-                enter-from-class="opacity-0 translate-y-4 scale-95"
+                enter-active-class="ease-[cubic-bezier(0.2,0.9,0.3,1.2)] duration-300"
+                enter-from-class="opacity-0 translate-y-6 scale-90"
                 enter-to-class="opacity-100 translate-y-0 scale-100"
                 leave-active-class="ease-in duration-200"
                 leave-from-class="opacity-100 translate-y-0 scale-100"
-                leave-to-class="opacity-0 translate-y-4 scale-95"
+                leave-to-class="opacity-0 translate-y-6 scale-90"
             >
                 <div
                     v-show="show"
-                    class="relative my-8 w-full transform overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-ink-900/5 transition-all"
+                    class="relative my-8 w-full transform overflow-hidden rounded-2xl bg-white shadow-2xl shadow-purple-950/30 ring-1 ring-purple-900/10 transition-all"
                     :class="maxWidthClass"
                 >
                     <button
                         v-if="closeable"
                         type="button"
-                        class="absolute right-4 top-4 z-10 rounded-lg p-1.5 text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
+                        class="absolute right-4 top-4 z-10 rounded-lg p-1.5 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700"
                         @click="close"
                     >
                         <X :size="18" />

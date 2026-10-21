@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ValidaSaldoCuenta;
 use App\Models\CargoRecurrente;
 use App\Models\Movimiento;
+use App\Support\Fechas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -62,8 +63,8 @@ class CargoRecurrenteController extends Controller
         $this->autorizar($recurrente);
 
         $datos = $request->validate([
-            'fecha' => 'required|date',
-        ]);
+            'fecha' => Fechas::REGLA_NO_FUTURA,
+        ], Fechas::MENSAJES_NO_FUTURA);
 
         $this->asegurarFondos($recurrente->cuenta, (float) $recurrente->monto, campo: 'fecha');
 

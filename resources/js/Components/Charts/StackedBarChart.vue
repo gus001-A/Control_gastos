@@ -15,8 +15,8 @@ const props = defineProps({
 const data = computed(() => ({
     labels: props.labels,
     datasets: [
-        { label: 'Pagado', data: props.pagado, backgroundColor: '#16a34a', borderRadius: 4, maxBarThickness: 42 },
-        { label: 'Pendiente', data: props.pendiente, backgroundColor: '#fbbf24', borderRadius: 4, maxBarThickness: 42 },
+        { label: 'Pagado', data: props.pagado, backgroundColor: '#9333ea', borderRadius: 4, maxBarThickness: 42 },
+        { label: 'Pendiente', data: props.pendiente, backgroundColor: '#171717', borderRadius: 4, maxBarThickness: 42 },
     ],
 }));
 

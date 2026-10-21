@@ -7,6 +7,7 @@ use App\Models\AbonoDeuda;
 use App\Models\Cuenta;
 use App\Models\Deuda;
 use App\Models\Movimiento;
+use App\Support\Fechas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,9 +25,9 @@ class AbonoDeudaController extends Controller
             'tipo' => 'required|in:abono,aumento',
             'cuenta_id' => 'nullable|exists:cuentas,id',
             'monto' => 'required|numeric|min:0.01',
-            'fecha' => 'required|date',
+            'fecha' => Fechas::REGLA_NO_FUTURA,
             'notas' => 'nullable|string|max:255',
-        ]);
+        ], Fechas::MENSAJES_NO_FUTURA);
 
         $esAumento = $datos['tipo'] === 'aumento';
 

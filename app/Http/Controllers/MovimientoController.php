@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ValidaSaldoCuenta;
 use App\Models\Cuenta;
 use App\Models\Movimiento;
+use App\Models\Transferencia;
+use App\Support\Fechas;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,8 +25,35 @@ class MovimientoController extends Controller
     {
         $userId = Auth::id();
 
+        // Mes seleccionado (por defecto el mes actual).
+        // Si llega vacío ('') desde el frontend, significa "ver todos los meses".
+        $mes = $request->input('mes', now()->format('Y-m'));
+        $filtrarPorMes = ! empty($mes);
+
+        // Rango de fechas (solo si se filtra por mes)
+        $inicio = null;
+        $fin = null;
+
+        if ($filtrarPorMes) {
+            try {
+                $inicio = Carbon::createFromFormat('Y-m', $mes)->startOfMonth()->toDateString();
+                $fin = Carbon::createFromFormat('Y-m', $mes)->endOfMonth()->toDateString();
+            } catch (\Exception $e) {
+                // Si el formato es inválido, no filtramos por mes
+                $filtrarPorMes = false;
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // Movimientos
+        // ---------------------------------------------------------------------
         $query = Movimiento::where('user_id', $userId)
-            ->with(['cuenta:id,nombre,color', 'categoria:id,nombre,color', 'deuda:id,nombre', 'proyecto:id,nombre']);
+            ->with([
+                'cuenta:id,nombre,color,tipo',
+                'categoria:id,nombre,color',
+                'deuda:id,nombre',
+                'proyecto:id,nombre',
+            ]);
 
         if ($request->filled('cuenta_id')) {
             $query->where('cuenta_id', $request->integer('cuenta_id'));
@@ -34,6 +64,13 @@ class MovimientoController extends Controller
         if ($request->filled('tipo')) {
             $query->where('tipo', $request->string('tipo'));
         }
+
+        // Filtro por mes (solo si se pidió un mes específico)
+        if ($filtrarPorMes) {
+            $query->whereBetween('fecha', [$inicio, $fin]);
+        }
+
+        // Compatibilidad opcional: fecha_inicio / fecha_fin manuales
         if ($request->filled('fecha_inicio')) {
             $query->where('fecha', '>=', $request->string('fecha_inicio'));
         }
@@ -46,21 +83,67 @@ class MovimientoController extends Controller
             ->selectRaw("COALESCE(SUM(CASE WHEN tipo = 'gasto' THEN monto ELSE 0 END), 0) as gastos")
             ->first();
 
-        $movimientos = $query->orderByDesc('fecha')->orderByDesc('id')->paginate(10)->withQueryString();
+        $movimientos = $query
+            ->orderByDesc('fecha')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
 
-        $transferenciasList = \App\Models\Transferencia::where('user_id', $userId)
-            ->with(['cuentaOrigen:id,nombre', 'cuentaDestino:id,nombre'])
+        // ---------------------------------------------------------------------
+        // Transferencias (mismo filtro de mes, si aplica)
+        // ---------------------------------------------------------------------
+        $transferenciasQuery = Transferencia::where('user_id', $userId)
+            ->with([
+                'cuentaOrigen:id,nombre,color',
+                'cuentaDestino:id,nombre,color',
+            ]);
+
+        if ($filtrarPorMes) {
+            $transferenciasQuery->whereBetween('fecha', [$inicio, $fin]);
+        }
+
+        if ($request->filled('fecha_inicio')) {
+            $transferenciasQuery->where('fecha', '>=', $request->string('fecha_inicio'));
+        }
+        if ($request->filled('fecha_fin')) {
+            $transferenciasQuery->where('fecha', '<=', $request->string('fecha_fin'));
+        }
+
+        $transferenciasList = $transferenciasQuery
             ->orderByDesc('fecha')
             ->orderByDesc('id')
             ->paginate(10, ['*'], 'transferencias_page')
             ->withQueryString();
 
+        // ---------------------------------------------------------------------
+        // Render
+        // ---------------------------------------------------------------------
         return Inertia::render('Movimientos/Index', [
             'movimientos' => $movimientos,
             'transferencias' => $transferenciasList,
-            'cuentas' => Auth::user()->cuentas()->conSaldo()->orderBy('nombre')->get(['id', 'nombre', 'activa', 'color']),
-            'categorias' => Auth::user()->categorias()->orderBy('tipo')->orderBy('nombre')->get(),
-            'filtros' => $request->only(['cuenta_id', 'categoria_id', 'tipo', 'fecha_inicio', 'fecha_fin']),
+
+            // Se quita el array de columnas para que `conSaldo()` pueda agregar `saldo`
+            'cuentas' => Auth::user()
+                ->cuentas()
+                ->conSaldo()
+                ->orderBy('nombre')
+                ->get(),
+
+            'categorias' => Auth::user()
+                ->categorias()
+                ->orderBy('tipo')
+                ->orderBy('nombre')
+                ->get(),
+
+            'filtros' => [
+                'cuenta_id' => $request->input('cuenta_id', ''),
+                'categoria_id' => $request->input('categoria_id', ''),
+                'tipo' => $request->input('tipo', ''),
+                // ⚠️ Importante: enviar '' cuando se pide "todos los meses",
+                // para que el frontend sepa que NO hay filtro de mes.
+                'mes' => $mes,
+            ],
+
             'totales' => [
                 'ingresos' => round((float) $totales->ingresos, 2),
                 'gastos' => round((float) $totales->gastos, 2),
@@ -122,9 +205,9 @@ class MovimientoController extends Controller
             'categoria_id' => 'nullable|exists:categorias,id',
             'tipo' => 'required|in:ingreso,gasto',
             'monto' => 'required|numeric|min:0.01',
-            'fecha' => 'required|date',
+            'fecha' => Fechas::REGLA_NO_FUTURA,
             'descripcion' => 'nullable|string|max:255',
-        ]);
+        ], Fechas::MENSAJES_NO_FUTURA);
     }
 
     private function autorizar(Movimiento $movimiento): void

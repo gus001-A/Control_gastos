@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Movimiento;
 use App\Models\PagoProyecto;
 use App\Models\Proyecto;
+use App\Support\Fechas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,9 +20,9 @@ class PagoProyectoController extends Controller
         $datos = $request->validate([
             'cuenta_id' => 'nullable|exists:cuentas,id',
             'monto' => 'required|numeric|min:0.01',
-            'fecha' => 'required|date',
+            'fecha' => Fechas::REGLA_NO_FUTURA,
             'notas' => 'nullable|string|max:255',
-        ]);
+        ], Fechas::MENSAJES_NO_FUTURA);
 
         DB::transaction(function () use ($datos, $proyecto) {
             $movimientoId = null;

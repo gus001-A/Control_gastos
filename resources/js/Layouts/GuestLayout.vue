@@ -11,10 +11,10 @@ import { Wallet } from '@lucide/vue';
         </div>
 
         <Link href="/" class="relative z-10 flex animate-fade-in items-center gap-2.5">
-            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 shadow-glow">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 shadow-glow">
                 <Wallet :size="20" class="text-white" stroke-width="2.25" />
             </div>
-            <span class="text-xl font-extrabold tracking-tight text-white">Control de Gastos</span>
+            <span class="text-xl font-bold tracking-tight text-white">Control de Gastos</span>
         </Link>
         <p class="relative z-10 mt-1.5 text-sm text-ink-300">Tus finanzas personales, siempre a la mano</p>
 

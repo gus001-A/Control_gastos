@@ -17,7 +17,7 @@ const data = computed(() => ({
         {
             data: props.values,
             borderColor: '#9333ea',
-            backgroundColor: 'rgba(147, 51, 234, 0.08)',
+            backgroundColor: 'rgba(147, 51, 234, 0.12)',
             fill: true,
             tension: 0.35,
             pointBackgroundColor: '#9333ea',

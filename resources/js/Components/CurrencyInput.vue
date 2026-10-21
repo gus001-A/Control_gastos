@@ -42,18 +42,18 @@ function alSalir() {
 
 <template>
     <div class="relative">
-        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm font-semibold text-ink-400">$</span>
+        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm font-medium text-neutral-400">$</span>
         <input
             v-bind="$attrs"
             type="text"
             inputmode="decimal"
             :value="texto"
             :placeholder="placeholder"
-            class="w-full rounded-lg border-ink-200 pl-7 pr-14 text-sm text-ink-800 shadow-sm transition focus:border-brand-500 focus:ring-brand-500"
+            class="h-10 w-full rounded-lg border-neutral-200 pl-7 pr-14 text-sm tabular-nums text-neutral-800 shadow-sm transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
             @focus="alEnfocar"
             @input="alEscribir"
             @blur="alSalir"
         />
-        <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-xs font-semibold text-ink-300">MXN</span>
+        <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[11px] font-medium text-neutral-400">MXN</span>
     </div>
 </template>

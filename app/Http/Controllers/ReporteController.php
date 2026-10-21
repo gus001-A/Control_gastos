@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cuenta;
 use App\Models\Deuda;
 use App\Models\Movimiento;
 use App\Models\Proyecto;
@@ -59,13 +60,28 @@ class ReporteController extends Controller
             'estado' => $p->estado,
         ]);
 
-        $deudas = Auth::user()->deudas()->withSum('abonos', 'monto')->withSum('aumentosDeuda', 'monto')->get();
+        // 👇 Deudas individuales (para la gráfica de barras)
+        $deudasModel = Auth::user()->deudas()
+            ->withSum('abonos', 'monto')
+            ->withSum('aumentosDeuda', 'monto')
+            ->get();
+
+        $deudas = $deudasModel->map(fn ($d) => [
+            'id' => $d->id,
+            'nombre' => $d->nombre ?? $d->descripcion ?? 'Deuda #'.$d->id,
+            'total' => round((float) $d->montoTotalEfectivo, 2),
+            'pagado' => round((float) $d->pagado, 2),
+            'restante' => round((float) $d->restante, 2),
+            'estado' => $d->estado,
+        ])->values();
+
+        // Resumen agregado (para las stats y la barra de progreso global)
         $resumenDeudas = [
-            'total' => round($deudas->sum('montoTotalEfectivo'), 2),
-            'pagado' => round($deudas->sum('pagado'), 2),
-            'restante' => round($deudas->sum('restante'), 2),
-            'activas' => $deudas->where('estado', 'activa')->count(),
-            'totalDeudas' => $deudas->count(),
+            'total' => round($deudasModel->sum('montoTotalEfectivo'), 2),
+            'pagado' => round($deudasModel->sum('pagado'), 2),
+            'restante' => round($deudasModel->sum('restante'), 2),
+            'activas' => $deudasModel->where('estado', 'activa')->count(),
+            'totalDeudas' => $deudasModel->count(),
         ];
 
         return Inertia::render('Reportes/Index', [
@@ -75,12 +91,13 @@ class ReporteController extends Controller
             'evolucionSaldo' => $evolucionSaldo,
             'proyectos' => $proyectos,
             'resumenDeudas' => $resumenDeudas,
+            'deudas' => $deudas, // 👈 nuevo prop
         ]);
     }
 
     private function evolucionSaldo(int $userId, int $meses): array
     {
-        $saldoInicialTotal = (float) \App\Models\Cuenta::where('user_id', $userId)->sum('saldo_inicial');
+        $saldoInicialTotal = (float) Cuenta::where('user_id', $userId)->sum('saldo_inicial');
 
         $movimientos = Movimiento::where('user_id', $userId)
             ->orderBy('fecha')
